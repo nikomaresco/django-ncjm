@@ -1,1 +1,1 @@
-# ddp-ncjm
+# django-ncjm
