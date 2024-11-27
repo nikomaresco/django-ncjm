@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  web:
+    image: python:3.9
+    container_name: ncjm_app
+    env_file:
+      - .env
+    volumes:
+      - .:/ncjm
+    working_dir: /ncjm
+    command: ["gunicorn", "ddpbroker.wsgi:application", "--bind", "0.0.0.0:8000"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: ncjm
+      POSTGRES_USER: ncjm
+      POSTGRES_PASSWORD: ncjm
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

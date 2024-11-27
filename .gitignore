@@ -1,0 +1,45 @@
+# env/extension directories
+.venv/*
+.vscode/*
+
+# SQLTools sql plugin connections
+*.session.sql
+
+# other file types
+*.log
+
+# environment variables
+.env*
+!.env.example
+
+# drawio temp files
+doc/*.drawio.*
+
+# app folders
+public/*
+!public/.keep
+public_collected/*
+!public_collected/.keep
+
+# other secure files
+docker-compose.override.yml
+
+# byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sphinx documentation
+docs/_build/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# Obsidian config dir
+.obsidian/
+
+# data generated during development
+.development-data/
+
+.htpasswd
