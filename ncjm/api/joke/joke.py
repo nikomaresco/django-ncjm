@@ -35,14 +35,14 @@ def get_joke_by_slug(request, slug):
     serializer = JokeSerializer(joke)
     return Response(serializer.data)
 
-@api_view(['DELETE'])
+@api_view(["DELETE"])
 def delete_joke(request):
     joke_id = request.query_params.get('id')
     joke = get_object_or_404(Joke, id=joke_id)
     joke.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['POST'])
+@api_view(["POST"])
 def create_joke(request):
     serializer = JokeSerializer(data=request.data)
     if serializer.is_valid():
@@ -50,7 +50,7 @@ def create_joke(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['PATCH'])
+@api_view(["PATCH"])
 def update_joke(request):
     joke_id = request.query_params.get('id')
     joke = get_object_or_404(Joke, id=joke_id)
