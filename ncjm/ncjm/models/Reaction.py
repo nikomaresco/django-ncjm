@@ -8,10 +8,6 @@ class Reaction(models.Model):
         max_length=10,
     )
 
-    text = models.TextField(
-        help_text="The text description of the reaction.",
-    )
-
     joke = models.ForeignKey(
         Joke,
         help_text="The joke to which this reaction is attached.",
