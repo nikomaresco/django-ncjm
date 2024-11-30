@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 
+
 class Joke(models.Model):
     created_at = models.DateTimeField(
         help_text="The date and time the joke was submitted.",
@@ -32,6 +33,25 @@ class Joke(models.Model):
         editable=False,
     )
 
+    is_deleted = models.BooleanField(
+        help_text="Whether the joke has been deleted.",
+        default=False,
+    )
+
+    ext_id = models.IntegerField(
+        help_text="The external ID of the joke.",
+        null=True,
+        blank=True,
+    )
+
+    tags = models.ManyToManyField(
+        "Tag",
+        help_text="The tags associated with the joke.",
+        through="JokeTag",
+        related_name="jokes",
+        related_query_name="joke",
+    )
+
     class Meta:
         indexes = [
             models.Index(fields=["slug"]),
@@ -48,7 +68,8 @@ class Joke(models.Model):
         """
         return f"{self.setup} - {self.punchline}"
 
-    def is_slug_unique(self,
+    @staticmethod
+    def is_slug_unique(
         slug: str,
     ) -> bool:
         """
@@ -70,6 +91,32 @@ class Joke(models.Model):
         """
         if not self.slug or self.setup != Joke.objects.get(pk=self.pk).setup:
             new_slug = slugify(self.setup)
-            if self.is_slug_unique(new_slug):
-                self.slug = new_slug
+
+            # ensure the slug is unique by appending a counter if necessary
+            slug_counter = 1
+            while not Joke.is_slug_unique(new_slug):
+                new_slug = f"{new_slug}-{slug_counter}"
+                slug_counter += 1
+
+            self.slug = new_slug
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """
+        Soft-deletes the joke instance by setting `is_deleted` to True.
+        """
+        self.is_deleted = True
+        self.save()
+
+    def hard_delete(self, *args, **kwargs):
+        """
+        Hard-deletes the joke instance and any tags that would be orphaned by
+        the deletion.
+        """
+        # check for orphaned tags and delete them
+        for tag in self.tags.all():
+            if not tag.jokes.exclude(id=self.id).exists():
+                tag.delete()
+        # delete the joke
+        super(Joke, self).delete(*args, **kwargs)
+
