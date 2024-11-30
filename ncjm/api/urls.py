@@ -1,19 +1,18 @@
 from django.urls import path
 
-from api.joke.joke import (
-    get_random_joke,
-    get_joke_by_id,
-    get_joke_by_slug,
-    delete_joke,
-    create_joke,
-    update_joke,
-)
+from api.endpoints.joke import create_read_joke, update_delete_joke
+from api.endpoints.tag import create_tag, get_or_delete_tag
+from api.endpoints.submitter import get_jokes_by_submitter
 
 urlpatterns = [
-    path("joke/random/", get_random_joke),
-    path("joke/<int:id>/", get_joke_by_id),
-    path("joke/<slug:slug>/", get_joke_by_slug),
-    path("joke/delete/<int:id>/", delete_joke),
-    path("joke/create/", create_joke),
-    path("joke/update/<int:id>/", update_joke),
+    # joke endpoint
+    path("joke/", create_read_joke),
+    path("joke/<int:id>/", update_delete_joke),
+
+    # tag endpoint
+    path("tag/", create_tag),
+    path("tag/<str:tag_text>/", get_or_delete_tag),
+
+    # submitter endpoint
+    path("submitter/<str:submitter_name>", get_jokes_by_submitter),
 ]
