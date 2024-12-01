@@ -4,22 +4,34 @@ from django.core.exceptions import ObjectDoesNotExist
 from ncjm.models import Joke, Tag, JokeTag, Reaction
 from .forms import JokeTagInlineForm
 
-### Custom actions for the admin panel
+### actions for the admin panel
 def approve_jokes(modeladmin, request, queryset):
+    """
+    Approves selected jokes in the admin panel.
+    """
     queryset.update(is_approved=True)
 approve_jokes.short_description = "Approve selected jokes"
 
 def unapprove_jokes(modeladmin, request, queryset):
+    """
+    Un-approves selected jokes in the admin panel.
+    """
     queryset.update(is_approved=False)
 unapprove_jokes.short_description = "Un-approve selected jokes"
 
 def hard_delete_jokes(modeladmin, request, queryset):
+    """
+    Hard-deletes selected jokes in the admin panel.
+    """
     for joke_record in queryset:
         joke_record.hard_delete()
 hard_delete_jokes.short_description = "Hard delete selected jokes"
 
-### Custom filters for the admin panel
+### filters for the admin panel
 class OrphanedJokesFilter(admin.SimpleListFilter):
+    """
+    Filters jokes that are not associated with any tags.
+    """
     title = "Un-tagged jokes"
     parameter_name = "orphaned_jokes"
 
@@ -37,6 +49,9 @@ class OrphanedJokesFilter(admin.SimpleListFilter):
         return queryset
 
 class OrphanedTagsFilter(admin.SimpleListFilter):
+    """
+    Filters tags that are not associated with any jokes.
+    """
     title = "Un-joked tags"
     parameter_name = "orphaned_tags"
 
@@ -54,8 +69,11 @@ class OrphanedTagsFilter(admin.SimpleListFilter):
         return queryset
 
 
-### Inline forms for the admin panel
+### inline forms for the admin panel
 class JokeInline(admin.TabularInline):
+    """
+    Displays the associated jokes for a tag in the admin panel.
+    """
     model = Joke.tags.through
     extra = 0
     verbose_name = "Associated Joke"
@@ -79,30 +97,37 @@ class JokeAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
     actions = [approve_jokes, unapprove_jokes, hard_delete_jokes,]
 
-    # by default, only show non-deleted jokes
     def get_queryset(self, request):
+        """
+        Override get_queryset to exclude soft-deleted jokes from the default
+        queryset.
+        """
         jokes_queryset = super().get_queryset(request)
         if not request.GET.get("is_deleted__exact"):
             return jokes_queryset.filter(is_deleted=False)
         return jokes_queryset
 
-    def get_object(self, request, object_id, from_field=None):
+    def get_object(self, request, joke_id, from_field=None):
         """
         Override get_object to include soft-deleted jokes.
         """
         try:
-            obj = Joke._default_manager.get(pk=object_id)
+            obj = Joke._default_manager.get(pk=joke_id)
         except ObjectDoesNotExist:
             obj = Joke.objects.none()
         return obj
 
-    # override default deletion, using a soft delete instead (for a selection of jokes)
-    def delete_queryset(self, request, queryset):
-        for joke_record in queryset:
+    def delete_queryset(self, request, jokes_queryset):
+        """
+        Soft-deletes the a queryset of selected jokes.
+        """
+        for joke_record in jokes_queryset:
             joke_record.delete()
 
-    # override default deletion, using a soft delete instead (for a single joke)
     def delete_model(self, request, joke_record):
+        """
+        Soft-deletes a single selected joke.
+        """
         joke_record.delete()
 
 class TagAdmin(admin.ModelAdmin):
