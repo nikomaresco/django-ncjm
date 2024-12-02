@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 
 from ncjm.models import Joke, Tag, JokeTag, Reaction
-from .forms import JokeTagInlineForm
+from admin.JokeTagInlineForm import JokeTagInlineForm
 
 ### actions for the admin panel
 def approve_jokes(modeladmin, request, queryset):
