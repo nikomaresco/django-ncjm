@@ -1,0 +1,12 @@
+<ul class="tags_list">
+    {% for tag in joke.tags.all %}
+    <li>
+        {% spaceless %}
+        <a href="{% url "search" %}?q={{ tag.tag_text }}"
+        title="See other jokes with the tag {{ tag.tag_text }}"
+        {% if search_term == tag.tag_text %}class="search_result"{% endif %}>
+            {{ tag.tag_text }}</a>
+        {% endspaceless %}
+    </li>
+    {% endfor %}
+</li>

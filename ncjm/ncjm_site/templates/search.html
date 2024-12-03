@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+    <div class="single_column">
+        <article>
+            <h2>Results</h2>
+
+            <form id="search" method="get">
+                <fieldset>
+                    <legend>Search for a joke by tag or submitter.</legend>
+                    <div class="form-group">
+                        <label for="q">Search:</label>
+                        <input type="text" id="q" name="q" value="{{ search_term }}">
+                        <button type="submit">Search</button>
+                    </div>
+                </fieldset>
+            </form>
+
+            {% if page_obj %}
+            <section id="search_results">
+                <table>
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <tr>
+                        <th>ID</th>
+                        <th>Setup</th>
+                        <th>Submitter</th>
+                        <th>Tags</th>
+                    </tr>
+                    {% for joke in page_obj %}
+                    <tr>
+                        <td>
+                            {% spaceless %}
+                            <a href="{% url "index" %}/{{ joke.id }}/">
+                                {{ joke.id }}</a>
+                            {% endspaceless %}
+                        </td>
+                        <td class="normal_case">
+                            {% spaceless %}
+                            <a href="{% url "index" %}/{{ joke.slug }}/"
+                            class="joke_link">
+                                {{ joke.setup }}</a>
+                            {% endspaceless %}
+                        </td>
+                        <td>
+                            {% spaceless %}
+                            <a href="{% url "search" %}?q={{ joke.submitter_name }}"
+                            title="See other jokes from {{ joke.submitter_name }}"
+                            class="normal_case">
+                                {{ joke.submitter_name }}</a>
+                            {% endspaceless %}
+                        <td>
+                            {% include "joke_tags.html" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <div class="pagination">
+                    <span class="step-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?q={{ search_term }}&page=1">&laquo; first</a>
+                            <a href="?q={{ search_term }}&page={{ page_obj.previous_page_number }}">&laquo; previous</a>
+                        {% endif %}
+
+                        <span class="current">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?q={{ search_term }}&page={{ page_obj.next_page_number }}">next</a>
+                            <a href="?q={{ search_term }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                        {% endif %}
+                    </span>
+                </div>
+            </section>
+            {% endif %}
+        </article>
+    </div>
+{% endblock %}

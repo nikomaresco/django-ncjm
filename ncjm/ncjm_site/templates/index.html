@@ -3,47 +3,41 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+    <div class="single_column">
+        <article id="joke">
 
-    <article id="joke">
+            <h2 id="joke_setup">
+                <a href="{% url "index" %}">{{ joke.setup }}</a>
+            </h2>
+            <h2 id="joke_punchline">
+                <a href="{% url "index" %}">{{ joke.punchline }}</a>
+            </h2>
 
-        {% block random_joke %}
-        <h2 id="joke_setup">
-            <a href="{% url "index" %}">{{ joke.setup }}</a>
-        </h2>
-        <h2 id="joke_punchline">
-            <a href="{% url "index" %}">{{ joke.punchline }}</a>
-        </h2>
-        {% endblock %}
+            <section id="joke_meta">
+                <p class="lightgray">
+                    <span>joke #{{ joke.id }}</span>
+                    <span class="normal_case">submitted by
+                        {% spaceless %}
+                        <a href="{% url "search" %}?q={{ joke.submitter_name }}">
+                            {{ joke.submitter_name }}</a>
+                        {% endspaceless %}
+                    </span>
+                    <span>on {{ joke.created_at|date:"Y-m-d" }}</span>
+                </p>
+            </section>
 
+            <section id="joke_tags">
+                {% include "joke_tags.html" %}
+            </section>
 
-        {% block joke_meta %}
-        <section id="joke_meta">
-            <p class="lightgray">
-                <span>joke #{{ joke.id }}</span>
-                <span>submitted by <a href="">{{ joke.submitter_name }}</a></span>
-                <span>on {{ joke.created_at|date:"Y-m-d" }}</span>
-            </p>
-        </section>
-        {% endblock %}
+            {% include "rating.html" %}
 
+            <p style="clear:left;" class="midgray">refresh the page or click the joke for a new joke.</p>
 
-        {% block joke_tags %}
-        <section id="joke_tags">
-            <ul class="tags_list">
-                {% for tag in joke.tags.all %}
-                <li><a href="">{{ tag.tag_text }}</a></li>
-                {% endfor %}
-            </li>
-        </section>
-        {% endblock %}
+            {% include "navigation.html" %}
 
-        {% include "rating.html" %}
+            {% include "joke_stats.html" %}
 
-        <p style="clear:left;" class="midgray">refresh the page or click the joke for a new joke.</p>
-
-        {% include "navigation.html" %}
-
-        {% include "joke_stats.html" %}
-
-    </article>
+        </article>
+    </div>
 {% endblock %}
