@@ -17,7 +17,7 @@ class JokeTagInlineForm(forms.ModelForm):
 
     class Meta:
         model = Joke
-        fields = ["setup", "punchline", "submitter_name", "tags"]
+        fields = ["setup", "punchline", "submitter_name", "tags",]
 
     # ensures that the initial value of the tags field is a space-separated list of the current tags
     def get_initial_for_field(self, field, field_name):
