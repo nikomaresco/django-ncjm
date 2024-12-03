@@ -32,16 +32,18 @@ class Tag(models.Model):
 
     def clean(self):
         """
-        Validate the tag text for case-insensitive uniqueness.
+        Validate `tag_text` for length and case-insensitive uniqueness.
         """
+        if len(self.tag_text) < 3:
+            raise ValidationError("Tag text must be at least 3 characters long.")
+
         if Tag.objects.filter(tag_text__iexact=self.tag_text) \
             .exclude(pk=self.pk).exists():
-            raise ValidationError(f"Tag with text '{self.tag_text}' already exists.")
-
+            raise ValidationError(f"Tag with tag_text '{self.tag_text}' already exists.")
 
     def save(self, *args, **kwargs):
         """
-        Save the tag text in lowercase.
+        Saves the Tag, forcing `tag_text` to lowercase.
         """
         self.tag_text = self.tag_text.lower()
         self.clean()
