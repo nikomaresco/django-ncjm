@@ -353,15 +353,15 @@ form {
 
 
     /***
-    * ratings
+    * reactions
     ***/
 
-    #rating {
+    #reactions {
         font-size: 24px;
         padding: 10px 0;
     }
 
-    #rating h3 {
+    #reactions h3 {
         margin: 0;
         padding: 0;
         font-size: 24px;
@@ -369,17 +369,27 @@ form {
 
     }
 
-    #rating ol {
+    #reactions ol {
         list-style-type: none;
         margin: 0;
         padding: 0;
         display: inline;
     }
 
-    #rating ol li {
+    #reactions ol li {
         display: inline;
     }
 
-    #rating ol li a {
-        text-decoration: none;
+    #reactions button {
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+    }
+
+    .reaction_symbol {
+        font-size: 24pt;
+    }
+    .reaction_count {
+        font-size: 12px;
+        color: #666;
     }
