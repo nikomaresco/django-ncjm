@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Home{% endblock %}
 
@@ -40,4 +41,12 @@
 
         </article>
     </div>
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        const csrf_token = "{{ csrf_token }}";
+        const joke_id = {{ joke.id }};
+        const react_url = "{% url "add_reaction" %}";
+    </script>
+    <script src="{% static "/js/reaction_handler.js" %}"></script>
 {% endblock %}
