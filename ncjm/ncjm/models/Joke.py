@@ -1,6 +1,17 @@
 from django.db import models
 from django.utils.text import slugify
 
+from ncjm.models import ReactionTracker
+
+def default_reactions():
+    return {
+        "😠": 0,
+        "🥱": 0,
+        "🫤": 0,
+        "🙄": 0,
+        "🤣": 0,
+        "🤩": 0,
+    }
 
 class Joke(models.Model):
     created_at = models.DateTimeField(
@@ -50,6 +61,20 @@ class Joke(models.Model):
         through="JokeTag",
         related_name="jokes",
         related_query_name="joke",
+    )
+
+    """
+    Reactions are stored in a JSON field as a dictionary of emoji labels and
+    counts.
+
+    I chose this implementation because there's not really any reason to store
+    individual reactions in the database; this saves on lookups and should be
+    more efficient in the long run.
+    """
+    reactions = models.JSONField(
+        help_text="The reactions to the joke stored as totals.",
+        # gets a copy of the default reactions dictionary
+        default=default_reactions,
     )
 
     class Meta:
@@ -120,3 +145,38 @@ class Joke(models.Model):
         # delete the joke
         super(Joke, self).delete(*args, **kwargs)
 
+    def add_reaction(self,
+        reaction_emoji: str,
+        ip_address: str,
+        user_agent: str,
+    ):
+        """
+        Adds a reaction to the joke.
+
+        Args:
+            reaction_emoji (str): The emoji of the reaction.
+            ip_address (str): The IP address of the user who reacted.
+            user_agent (str): The user agent string of the browser used.
+        """
+        if ReactionTracker.objects.filter(
+            joke=self,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        ).exists():
+            raise ValueError("You have already reacted to this joke.")
+
+        if reaction_emoji not in default_reactions().keys():
+            raise ValueError(f"Invalid reaction emoji.")
+
+        ReactionTracker.objects.create(
+            joke=self,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+
+        if reaction_emoji in self.reactions:
+            self.reactions[reaction_emoji] += 1
+        else:
+            self.reactions[reaction_emoji] = 1
+
+        self.save()

@@ -21,6 +21,11 @@ class JokeTag(models.Model):
     )
 
     class Meta:
+        indexes = [
+            models.Index(fields=["joke"]),
+            models.Index(fields=["tag"]),
+            models.Index(fields=["joke", "tag"]),
+        ]
         unique_together = ("joke", "tag")
 
     def __str__(self):
