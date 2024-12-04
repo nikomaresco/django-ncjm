@@ -1,10 +1,10 @@
-<section id="rating">
+<section id="reactions">
     <h3 class="midgray">rate this joke:</h3>
     <ol>
-        {% for reaction in joke.reactions.all %}
+        {% for reaction, count in joke.reactions.items %}
         <li>
-            <button class="reaction_button" data-emoji="😠">
-                😠
+            <button class="reaction_button" data-emoji="{{ reaction }}">
+                <span class="reaction_symbol">{{ reaction }}</span>
                 <span class="reaction_count">{{ count }}</span>
             </button>
         </li>
