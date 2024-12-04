@@ -1,8 +1,6 @@
 from django.db import models
 from django.utils import timezone
 
-from ncjm.models import Joke, Reaction
-
 class ReactionTracker(models.Model):
     created_at = models.DateTimeField(
         default=timezone.now,
@@ -10,15 +8,9 @@ class ReactionTracker(models.Model):
     )
 
     joke = models.ForeignKey(
-        Joke,
+        "Joke",
         on_delete=models.CASCADE,
         help_text="The joke that received the reaction"
-    )
-
-    reaction = models.ForeignKey(
-        Reaction,
-        on_delete=models.CASCADE,
-        help_text="The reaction given to the joke"
     )
 
     ip_address = models.GenericIPAddressField(
@@ -33,7 +25,6 @@ class ReactionTracker(models.Model):
     class Meta:
         unique_together = (
             "joke",
-            "reaction",
             "ip_address",
             "user_agent"
         )
@@ -41,7 +32,6 @@ class ReactionTracker(models.Model):
         indexes = [
             models.Index(fields=[
                 "joke",
-                "reaction",
                 "ip_address",
                 "user_agent"
             ])
