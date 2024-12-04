@@ -1,12 +1,7 @@
 from rest_framework import serializers
 
-from ncjm.models import Joke, Tag, Reaction
+from ncjm.models import Joke, Tag
 
-
-class ReactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reaction
-        fields = "__all__"
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:

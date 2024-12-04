@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 
-from ncjm.models import Joke, Tag, JokeTag, Reaction
+from ncjm.models import Joke, Tag, JokeTag
 from .JokeTagInlineForm import JokeTagInlineForm
 from .filters import OrphanedJokesFilter, OrphanedTagsFilter
 from .inlines import JokeInline
