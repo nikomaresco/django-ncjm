@@ -15,6 +15,6 @@
         {% block content %}{% endblock %}
     </main>
     {% include "footer.html" %}
-    <script src="{% static "ncjm_site/js/scripts.js" %}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
