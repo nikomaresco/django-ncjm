@@ -1,10 +1,14 @@
 from django.db import models
 from django.utils.text import slugify
 
-from ncjm.models import ReactionTracker
+class AlreadyReactedException(Exception):
+    """
+    Raised when a user tries to react to a joke more than once.
+    """
+    pass
 
-def default_reactions():
-    return {
+class Joke(models.Model):
+    default_reactions = {
         "😠": 0,
         "🥱": 0,
         "🫤": 0,
@@ -13,7 +17,6 @@ def default_reactions():
         "🤩": 0,
     }
 
-class Joke(models.Model):
     created_at = models.DateTimeField(
         help_text="The date and time the joke was submitted.",
         auto_now_add=True
@@ -73,8 +76,7 @@ class Joke(models.Model):
     """
     reactions = models.JSONField(
         help_text="The reactions to the joke stored as totals.",
-        # gets a copy of the default reactions dictionary
-        default=default_reactions,
+        default=dict,
     )
 
     class Meta:
@@ -107,6 +109,16 @@ class Joke(models.Model):
             bool: True if the slug is unique, False otherwise.
         """
         return not Joke.objects.filter(slug=slug).exists()
+
+    def clean(self):
+        """
+        Ensures that the setup and punchline are not the same, and that a
+        default reactions dictionary is present.
+        """
+        if self.setup == self.punchline:
+            raise ValueError("Setup and punchline cannot be the same.")
+        if not self.reactions or self.reactions == {}:
+            self.reactions = self.default_reactions.copy()
 
     def save(self, *args, **kwargs):
         """
@@ -158,14 +170,16 @@ class Joke(models.Model):
             ip_address (str): The IP address of the user who reacted.
             user_agent (str): The user agent string of the browser used.
         """
+        from ncjm.models import ReactionTracker
+
         if ReactionTracker.objects.filter(
             joke=self,
             ip_address=ip_address,
             user_agent=user_agent,
         ).exists():
-            raise ValueError("You have already reacted to this joke.")
+            raise AlreadyReactedException("You have already reacted to this joke.")
 
-        if reaction_emoji not in default_reactions().keys():
+        if reaction_emoji not in self.default_reactions.keys():
             raise ValueError(f"Invalid reaction emoji.")
 
         ReactionTracker.objects.create(
