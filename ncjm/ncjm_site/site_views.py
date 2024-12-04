@@ -1,8 +1,13 @@
+import json
+from django.http import JsonResponse, HttpResponseRedirect
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.db.models import Q
 from django.core.paginator import Paginator
 
 from ncjm.models import Joke, Tag
+from ncjm.models.Joke import AlreadyReactedException
 from .forms.AddAJokeForm import AddAJokeForm
 
 def index(request, joke_id=None, joke_slug=None):
@@ -75,3 +80,40 @@ def search(request):
     }
 
     return render(request, "search.html", context)
+
+def add_reaction(request):
+    print(request)
+    if request.method == "POST":
+        try:
+            print("processing reaction")
+
+            data = json.loads(request.body)
+            joke_id = data.get("joke_id")
+            reaction_emoji = data.get("reaction_emoji")
+
+            joke = get_object_or_404(Joke, pk=joke_id)
+            joke.add_reaction(
+                reaction_emoji=reaction_emoji,
+                ip_address=request.META.get("REMOTE_ADDR"),
+                user_agent=request.META.get("HTTP_USER_AGENT"),
+            )
+            new_count = joke.reactions.get(reaction_emoji, 0)
+            return JsonResponse({
+                "status": "success",
+                "new_count": new_count,
+            })
+
+        except AlreadyReactedException as e:
+            print(e)
+            return JsonResponse({
+                "status": "error",
+                "message": "You have already reacted to this joke.",
+            })
+        except PermissionDenied as e:
+            print(e)
+            return JsonResponse({
+                "status": "error",
+                "message": "Error processing your request. Please refresh the page and try again."
+            })
+
+    return HttpResponseRedirect(reverse("index"))
