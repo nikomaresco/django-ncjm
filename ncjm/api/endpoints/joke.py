@@ -5,7 +5,8 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from ncjm.models import Joke
 from ..serializers import JokeSerializer
@@ -54,6 +55,7 @@ def _delete_joke(request):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def create_read_joke(request):
     if request.method == "GET":
         return _get_joke(request)
@@ -61,6 +63,7 @@ def create_read_joke(request):
         return _create_joke(request)
 
 @api_view(["PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
 def update_delete_joke(request):
     if request.method == "PATCH":
         return _update_joke(request)

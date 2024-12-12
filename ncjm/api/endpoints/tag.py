@@ -3,8 +3,9 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 
 from ncjm.models import Tag, Joke
 from ..serializers import TagSerializer, JokeSerializer
@@ -37,6 +38,7 @@ def _create_tag(request):
 
 
 @api_view(["GET", "DELETE"])
+@permission_classes([IsAuthenticated])
 def get_or_delete_tag(request, tag_text):
     if request.method == "GET":
         return _get_jokes_with_tag(request, tag_text)
@@ -44,5 +46,6 @@ def get_or_delete_tag(request, tag_text):
         return _delete_tag(request, tag_text)
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_tag(request):
     return _create_tag(request)
