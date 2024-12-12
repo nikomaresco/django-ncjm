@@ -52,12 +52,6 @@ class Joke(models.Model):
         default=False,
     )
 
-    ext_id = models.IntegerField(
-        help_text="The external ID of the joke.",
-        null=True,
-        blank=True,
-    )
-
     tags = models.ManyToManyField(
         "Tag",
         help_text="The tags associated with the joke.",

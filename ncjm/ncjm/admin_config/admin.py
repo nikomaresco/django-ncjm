@@ -51,7 +51,7 @@ class JokeAdmin(admin.ModelAdmin):
         joke_record.delete()
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ("tag_text", "ext_id",)
+    list_display = ("tag_text",)
     search_fields = ("tag_text",)
     ordering = ("tag_text",)
     list_filter = (OrphanedTagsFilter,)

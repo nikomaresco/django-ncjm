@@ -13,12 +13,6 @@ class Tag(models.Model):
         unique=True,
     )
 
-    ext_id = models.IntegerField(
-        help_text="The external ID of the tag.",
-        null=True,
-        blank=True,
-    )
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
