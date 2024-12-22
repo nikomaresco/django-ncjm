@@ -6,18 +6,26 @@ from ncjm.models import Joke, Tag
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = "__all__"
+        fields = [
+            "tag_text",
+        ]
 
 class JokeSerializer(serializers.ModelSerializer):
-    tags =TagSerializer(
+    tags = TagSerializer(
         many=True,
         required=False,
-        write_only=True,
     )
 
     class Meta:
         model = Joke
-        fields = "__all__"
+        fields = [
+            "id",
+            "setup",
+            "punchline",
+            "submitter_name",
+            "tags",
+            "reactions"
+        ]
 
     def create(self, validated_data):
         tags_data = validated_data.pop("tags", [])
