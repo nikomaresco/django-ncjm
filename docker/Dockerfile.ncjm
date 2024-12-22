@@ -1,43 +1,29 @@
-# Use the official Alpine image
 FROM python:3.12.2-slim-bookworm AS app
 
 ENV PYTHONUNBUFFERED 1
 
-# define ids for the python user
 ARG UID=1000
 ARG GID=1000
 
-# create python user
-RUN groupadd -g "${GID}" python \
-    && useradd --create-home --no-log-init -u "${UID}" -g "${GID}" python
+# create ncjm:ncjm
+RUN groupadd -g "${GID}" ncjm \
+    && useradd --create-home --no-log-init -u "${UID}" -g "${GID}" pncjmthon
 
-# switch to the python user
-USER python
+# switch to python user
+USER ncjm
 
-# set up environment vars for python
-ENV PATH="${PATH}:/ncjm/.local/bin" \
+# configure environment vars for python user
+ENV PATH="${PATH}:/home/ncjm/.local/bin" \
     PYTHONPATH="." \
-    USER="python"
+    USER="ncjm"
 
-# Set the working directory
-RUN mkdir /ncjm
-WORKDIR /ncjm
+WORKDIR /home/ncjm/app
 
-# Copy the requirements file
 COPY requirements.txt /ncjm/requirements.txt
-
-# Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
-COPY ./ncjm/ /ncjm/
+COPY ./ncjm/ /home/ncjm/app
 
-# create aliases
-COPY dockerfile-aliases.sh /aliases.sh
-RUN echo "source /aliases.sh" >> /home/python/.bashrc
-
-# Expose the port the app runs on
 EXPOSE 8000
 
-# Command to run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "ncjm.wsgi:application", "--bind", "0.0.0.0:8000"]
