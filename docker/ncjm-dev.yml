@@ -1,15 +1,15 @@
-version: "3.8"
-
 services:
   web:
-    image: python:3.9
+    build:
+      context: ..
+      dockerfile: ./Docker/Dockerfile.ncjm
     container_name: ncjm_app
     env_file:
-      - .env
+      - ../.env
     volumes:
-      - .:/ncjm
-    working_dir: /ncjm
-    command: ["gunicorn", "ddpbroker.wsgi:application", "--bind", "0.0.0.0:8000"]
+      - ../ncjm:/home/ncjm/app
+    working_dir: /home/ncjm/app
+    command: ["gunicorn", "ncjm.wsgi:application", "--bind", "0.0.0.0:8000", "--reload"]
     ports:
       - "8000:8000"
     depends_on:
