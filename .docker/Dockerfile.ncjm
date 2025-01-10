@@ -7,7 +7,7 @@ ARG GID=1000
 
 # create ncjm:ncjm
 RUN groupadd -g "${GID}" ncjm \
-    && useradd --create-home --no-log-init -u "${UID}" -g "${GID}" pncjmthon
+    && useradd --create-home --no-log-init -u "${UID}" -g "${GID}" ncjm
 
 # switch to python user
 USER ncjm
@@ -19,8 +19,8 @@ ENV PATH="${PATH}:/home/ncjm/.local/bin" \
 
 WORKDIR /home/ncjm/app
 
-COPY requirements.txt /ncjm/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /home/ncjm/requirements.txt
+RUN pip install --no-cache-dir -r /home/ncjm/requirements.txt
 
 COPY ./ncjm/ /home/ncjm/app
 
