@@ -29,7 +29,7 @@ services:
     depends_on:
       - web
 
- certbot:
+  certbot:
     image: certbot/certbot
     container_name: ncjm_certbot
     volumes:
