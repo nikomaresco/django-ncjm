@@ -27,6 +27,8 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
+NCJM_API_ENABLED = env("NCJM_API_ENABLED", default=False)
+
 DEBUG = env("DJANGO_DEBUG", default=False)
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
