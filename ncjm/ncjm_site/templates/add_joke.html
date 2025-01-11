@@ -21,6 +21,14 @@
                     {% elif status == "error" %}
                     <p>
                         There was an error with your submission. Please try again.
+                        {% if errors %}
+                        <h3>Errors:</h3>
+                            <ul class="add_joke_errors errors_list">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% endif %}
                     </p>
                     {% endif %}
 
@@ -33,11 +41,6 @@
                     {% csrf_token %}
 
                     {{ form.captcha }}
-                    {% if form.catcha.errors %}
-                        <div class="error">
-                            {{ form.captcha.errors }}
-                        </div>
-                    {% endif %}
 
                     <fieldset>
                         <legend>1. Start with your name</legend>
