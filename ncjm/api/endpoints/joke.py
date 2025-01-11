@@ -29,14 +29,23 @@ def _get_joke(request):
         serializer = JokeSerializer(joke)
         return Response(serializer.data)
 
-    return Response({"message": "No jokes available"}, status=status.HTTP_404_NOT_FOUND)
+    return Response({
+            "message": "No jokes available"
+        },
+        status=status.HTTP_404_NOT_FOUND
+    )
 
 def _create_joke(request):
     serializer = JokeSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+            "message": "Validation error",
+            "errors": serializer.errors,
+        },
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 def _update_joke(request):
     joke_id = request.query_params.get("id")
@@ -45,7 +54,11 @@ def _update_joke(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+            "message": "Validation Error",
+            "errors": serializer.errors,
+        }, status=status.HTTP_400_BAD_REQUEST
+    )
 
 def _delete_joke(request):
     joke_id = request.query_params.get("id")
