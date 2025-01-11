@@ -24,6 +24,6 @@ services:
     volumes:
       - ../public_collected/:/home/ncjm/public_collected
       - ../.nginx.conf:/etc/nginx/nginx.conf
-      - {$CERTS_ROOT}:/home/ncjm/certs
+      - ${CERTS_ROOT}:/home/ncjm/certs
     depends_on:
       - web
