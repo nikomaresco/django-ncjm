@@ -2,7 +2,7 @@ services:
   web:
     build:
       context: ..
-      dockerfile: ./Dockerfile.ncjm
+      dockerfile: ./.docker/Dockerfile.ncjm
     container_name: ncjm_app
     env_file:
       - ../.env
