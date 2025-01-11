@@ -14,7 +14,7 @@ services:
       - "8000:8000"
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.19.0-alpine
     container_name: ncjm_nginx
     env_file:
       - ../.env
