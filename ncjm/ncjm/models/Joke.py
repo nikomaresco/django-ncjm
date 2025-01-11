@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from django.core.exceptions import ValidationError
 
 class AlreadyReactedException(Exception):
     """
@@ -110,7 +111,7 @@ class Joke(models.Model):
         default reactions dictionary is present.
         """
         if self.setup == self.punchline:
-            raise ValueError("Setup and punchline cannot be the same.")
+            raise ValidationError("Setup and punchline cannot be the same.")
         if not self.reactions or self.reactions == {}:
             self.reactions = self.default_reactions.copy()
 
@@ -174,7 +175,7 @@ class Joke(models.Model):
             raise AlreadyReactedException("You have already reacted to this joke.")
 
         if reaction_emoji not in self.default_reactions.keys():
-            raise ValueError(f"Invalid reaction emoji.")
+            raise ValidationError(f"Invalid reaction emoji.")
 
         ReactionTracker.objects.create(
             joke=self,
