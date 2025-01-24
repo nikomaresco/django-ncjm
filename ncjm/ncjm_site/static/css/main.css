@@ -73,7 +73,7 @@ main {
 
 h1 {
 	width: 100%;
-	padding: 8px 16px;
+	padding: 8px 0 8px 16px;
 	font-size: 24px;
 	margin: 0;
 	background-color: black;
@@ -225,6 +225,13 @@ form {
 
 		padding: 8px;
 	}
+
+    .errors_list {
+        margin: 0 0 0 24px;
+        padding: 12px 0 12px 8px;
+        list-style-type: disc;
+        color: #330909;
+    }
 
 
 	/***

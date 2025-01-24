@@ -18,15 +18,21 @@ def index(request, joke_id=None, joke_slug=None):
     else:
         # grab a random nondeleted, approved joke
         joke = Joke.objects.filter(
-            is_deleted=False,
             is_approved=True,
+            is_deleted=False,
         ).order_by("?").first()
 
     # grab the number of approved jokes
-    total_approved_jokes = Joke.objects.filter(is_approved=True).count()
+    total_approved_jokes = Joke.objects.filter(
+        is_approved=True,
+        is_deleted=False,
+    ).count()
 
     # grab the number of jokes in the queue
-    jokes_in_queue = Joke.objects.filter(is_approved=False).count()
+    jokes_in_queue = Joke.objects.filter(
+        is_approved=False,
+        is_deleted=False,
+    ).count()
 
     context = {
         "joke": joke,
@@ -43,19 +49,41 @@ def index(request, joke_id=None, joke_slug=None):
 def add_joke(request):
     if request.method == "POST":
         form = AddAJokeForm(request.POST)
-        if form.is_valid():
-            form.save()
+        try:
+            # handle valid form submission
+            if form.is_valid():
+                form.save()
 
-            submitter_name = form.cleaned_data["submitter_name"]
-            new_form = AddAJokeForm(
-                initial={"submitter_name": submitter_name},
-            )
+                submitter_name = form.cleaned_data["submitter_name"]
+                new_form = AddAJokeForm(
+                    initial={"submitter_name": submitter_name},
+                )
 
+                context = {
+                    "status": "success",
+                    "form": new_form,
+                }
+
+            # handle ValidationErrors
+            else:
+                errors = []
+                for field, error_list in form.errors.items():
+                    for error in error_list:
+                        errors.append(error)
+                context = {
+                    "status": "error",
+                    "errors": errors,
+                    "form": form,
+                }
+        # handle ValueErrors and other non-validation exceptions
+        except Exception as e:
             context = {
-                "status": "success",
-                "form": new_form,
+                "status": "error",
+                "errors": e,
+                "form": form,
             }
-            return render(request, "add_joke.html", context=context)
+        
+        return render(request, "add_joke.html", context=context)
 
     form = AddAJokeForm()
     return render(request, "add_joke.html", {"form": form})
@@ -82,11 +110,8 @@ def search(request):
     return render(request, "search.html", context)
 
 def add_reaction(request):
-    print(request)
     if request.method == "POST":
         try:
-            print("processing reaction")
-
             data = json.loads(request.body)
             joke_id = data.get("joke_id")
             reaction_emoji = data.get("reaction_emoji")
@@ -104,13 +129,12 @@ def add_reaction(request):
             })
 
         except AlreadyReactedException as e:
-            print(e)
             return JsonResponse({
                 "status": "error",
                 "message": "You have already reacted to this joke.",
             })
+
         except PermissionDenied as e:
-            print(e)
             return JsonResponse({
                 "status": "error",
                 "message": "Error processing your request. Please refresh the page and try again."
