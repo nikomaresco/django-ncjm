@@ -10,6 +10,6 @@ urlpatterns = [
     path("add-a-joke/", site_views.add_joke, name="add_joke"),
     path("react/", site_views.add_reaction, name="add_reaction"),
 
-    path("<int:joke_id>/", site_views.index, name="joke_by_id"),
-    path("<slug:joke_slug>/", site_views.index, name="joke_by_slug"),
+    path("id/<int:joke_id>/", site_views.index, name="joke_by_id"),
+    path("slug/<slug:joke_slug>/", site_views.index, name="joke_by_slug"),
 ]
