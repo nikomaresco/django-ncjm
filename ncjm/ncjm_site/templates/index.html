@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Niko's Corny Joke Machine{% endblock %}
 
 {% block content %}
-    <div class="single_column">
+    <div class="single-column">
         <article id="joke">
 
-            <h2 id="joke_setup">
+            <h2 id="joke-setup">
                 <a href="{% url "index" %}">{{ joke.setup }}</a>
             </h2>
-            <h2 id="joke_punchline">
+            <h2 id="joke-punchline">
                 <a href="{% url "index" %}">{{ joke.punchline }}</a>
             </h2>
 
-            <section id="joke_meta">
+            <section id="joke-meta">
                 <p class="lightgray">
                     <span>joke #{{ joke.id }}</span>
-                    <span class="normal_case">submitted by
+                    <span class="normal-case">submitted by
                         {% spaceless %}
                         <a href="{% url "search" %}?q={{ joke.submitter_name }}">
                             {{ joke.submitter_name }}</a>
@@ -27,7 +27,7 @@
                 </p>
             </section>
 
-            <section id="joke_tags">
+            <section id="joke-tags">
                 {% include "joke_tags.html" %}
             </section>
 

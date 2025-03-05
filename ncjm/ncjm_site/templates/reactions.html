@@ -3,9 +3,9 @@
     <ol>
         {% for reaction, count in joke.reactions.items %}
         <li>
-            <button class="reaction_button" data-emoji="{{ reaction }}">
-                <span class="reaction_symbol">{{ reaction }}</span>
-                <span class="reaction_count">{{ count }}</span>
+            <button class="reaction-button" data-emoji="{{ reaction }}">
+                <span class="reaction-symbol">{{ reaction }}</span>
+                <span class="reaction-count">{{ count }}</span>
             </button>
         </li>
         {% endfor %}

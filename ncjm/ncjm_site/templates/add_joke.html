@@ -3,7 +3,7 @@
 {% block title %}Add a new joke{% endblock %}
 
 {% block content %}
-    <div class="two_column">
+    <div class="two-column">
         <div class="column" style="flex: 3;max-width: 700px;">
             <article>
                 <h2>Add a new joke</h2>
@@ -23,7 +23,7 @@
                         There was an error with your submission. Please try again.
                         {% if errors %}
                         <h3>Errors:</h3>
-                            <ul class="add_joke_errors errors_list">
+                            <ul class="add-joke-errors errors-list">
                             {% for error in errors %}
                                 <li>{{ error }}</li>
                             {% endfor %}
@@ -37,7 +37,7 @@
                     </p>
                 </div>
 
-                <form id="add_joke" method="post">
+                <form id="add-joke" method="post">
                     {% csrf_token %}
 
                     {{ form.captcha }}
@@ -94,7 +94,7 @@
                     title="niko's corny joke machine">nikoscornyjokemachine.com</a>,
                     you agree to the following:
                 </p>
-                <ul class="chevron_list">
+                <ul class="chevron-list">
                     <li>
                         The content you are submitting is not under copyright.
                     </li>
