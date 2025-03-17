@@ -35,13 +35,13 @@
                     <tr>
                         <td>
                             {% spaceless %}
-                            <a href="{% url "index" %}/id/{{ joke.id }}/">
+                            <a href="{% url "joke_by_id" joke.id %}">
                                 {{ joke.id }}</a>
                             {% endspaceless %}
                         </td>
                         <td class="normal_case">
                             {% spaceless %}
-                            <a href="{% url "index" %}/slug/{{ joke.slug }}/"
+                            <a href="{% url "joke_by_slug" joke.slug %}"
                             class="joke_link">
                                 {{ joke.setup }}</a>
                             {% endspaceless %}
