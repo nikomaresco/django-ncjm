@@ -105,7 +105,7 @@ class AddAJokeForm(forms.ModelForm):
         # turn tags to a list, or an empty list if none are provided (an empty
         #  string would normally result in [""])
         tags_list = [
-            tag.strip() for tag in self.cleaned_data["tags"].split(" ")
+            tag.strip().lower() for tag in self.cleaned_data["tags"].split(" ")
                 if tag.strip()
         ]
 
