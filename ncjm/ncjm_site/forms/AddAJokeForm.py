@@ -103,7 +103,7 @@ class AddAJokeForm(forms.ModelForm):
     def save(self, commit=True):
         joke = super().save(commit=False)
         tags_list = [tag.strip() for tag in self.cleaned_data["tags"].split(" ")]
-        print(f"saving! {joke} {tags_list}")
+
         if commit:
             joke.save()
 
