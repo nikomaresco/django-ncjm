@@ -26,8 +26,11 @@ class Tag(models.Model):
 
     def clean(self):
         """
-        Validate `tag_text` for length and case-insensitive uniqueness.
+        If present, validate `tag_text` for length and case-insensitive uniqueness.
         """
+        if not self.tag_text:
+            return
+    
         if len(self.tag_text) < 3:
             raise ValidationError("Tag text must be at least 3 characters long.")
 
