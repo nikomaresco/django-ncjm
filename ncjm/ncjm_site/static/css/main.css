@@ -134,7 +134,7 @@ fieldset p {
 	/***
 	 * links
 	***/
-    h1 a:visited {
+    h1 a, h1 a:visited {
         color: white;
     }
 
