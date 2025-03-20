@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpRequest
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -101,6 +101,11 @@ def search(request):
     paginator = Paginator(jokes_results, 10)  # Show 10 jokes per page
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+
+    for joke in page_obj:
+        joke.full_url_by_id = request.build_absolute_uri(f"/id/{joke.id}/")
+        joke.full_url_by_slug = request.build_absolute_uri(f"/slug/{joke.slug}/")
+
 
     context = {
         "search_term": search_term,
