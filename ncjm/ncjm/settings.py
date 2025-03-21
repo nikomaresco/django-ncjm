@@ -28,6 +28,7 @@ os.makedirs(LOG_DIR, exist_ok=True)
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 NCJM_API_ENABLED = env("NCJM_API_ENABLED", default=False)
+NCJM_MEDIA_PROVIDERS = env.list("NCJM_MEDIA_PROVIDERS", default=[])
 
 DEBUG = env("DJANGO_DEBUG", default=False)
 
