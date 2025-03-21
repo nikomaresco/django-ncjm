@@ -159,7 +159,7 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "ncjm_site", "static",)
 ]
-STATIC_ROOT = Path(BASE_DIR).parent / "public_collected"
+STATIC_ROOT = Path(BASE_DIR) / "public_collected"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
