@@ -8,7 +8,7 @@ class ReactionTracker(models.Model):
     )
 
     joke = models.ForeignKey(
-        "Joke",
+        "JokeBase",
         on_delete=models.CASCADE,
         help_text="The joke that received the reaction"
     )

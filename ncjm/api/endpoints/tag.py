@@ -7,13 +7,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
-from ncjm.models import Tag, Joke
+from ncjm.models import Tag, CornyJoke
 from ..serializers import TagSerializer, JokeSerializer
 
 
 def _get_jokes_with_tag(request, tag_text):
     tag = get_object_or_404(Tag, tag_text=tag_text)
-    jokes = Joke.objects.filter(tags=tag)
+    jokes = CornyJoke.objects.filter(tags=tag)
 
     page = request.query_params.get("page", 1)
     per_page = request.query_params.get("per_page", 10)

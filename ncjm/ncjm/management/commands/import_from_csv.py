@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from django.db import IntegrityError
 from django.utils import timezone
 
-from ncjm.models import Joke, Tag, JokeTag
+from ncjm.models import CornyJoke, Tag, JokeTag
 
 JOKES_CSV = r"c:/temp/jokes.csv"
 TAGS_CSV = r"c:/temp/tags.csv"
@@ -30,7 +30,7 @@ class Command(BaseCommand):
                         timezone.datetime.strptime(row["submitted"],"%Y-%m-%d %H:%M:%S"),
                         timezone.get_current_timezone(),
                     )
-                    Joke.objects.update_or_create(
+                    CornyJoke.objects.update_or_create(
                         ext_id=row["id"],
                         defaults={
                             "setup": row["setup"],
@@ -67,7 +67,7 @@ class Command(BaseCommand):
             reader = csv.DictReader(csvfile)
             for row in reader:
                 try:
-                    joke = Joke.objects.get(ext_id=row["joke_id"])
+                    joke = CornyJoke.objects.get(ext_id=row["joke_id"])
                     tag = Tag.objects.get(ext_id=row["tag_id"])
                     JokeTag.objects.update_or_create(
                         joke=joke,
@@ -76,7 +76,7 @@ class Command(BaseCommand):
                             "created_at": row["created"],
                         }
                     )
-                except Joke.DoesNotExist:
+                except CornyJoke.DoesNotExist:
                     self.stdout.write(self.style.ERROR(f"Joke with ext_id {row['joke_id']} does not exist"))
                 except Tag.DoesNotExist:
                     self.stdout.write(self.style.ERROR(f"Tag with ext_id {row['tag_id']} does not exist"))

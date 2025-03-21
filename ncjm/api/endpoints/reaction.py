@@ -6,5 +6,5 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from ncjm.models import Tag, Joke
+from ncjm.models import Tag, CornyJoke
 from ..serializers import ReactionSerializer

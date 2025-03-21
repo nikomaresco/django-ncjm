@@ -8,7 +8,7 @@ class AlreadyReactedException(Exception):
     """
     pass
 
-class Joke(models.Model):
+class JokeBase(models.Model):
     default_reactions = {
         "😠": 0,
         "🥱": 0,
@@ -26,14 +26,6 @@ class Joke(models.Model):
     is_approved = models.BooleanField(
         help_text="Whether the joke has been moved from the approval queue to the main joke list.",
         default=False,
-    )
-
-    setup = models.TextField(
-        help_text="The setup of the joke."
-    )
-
-    punchline = models.TextField(
-        help_text="The punchline of the joke.",
     )
 
     submitter_name = models.CharField(
@@ -103,7 +95,7 @@ class Joke(models.Model):
         Returns:
             bool: True if the slug is unique, False otherwise.
         """
-        return not Joke.objects.filter(slug=slug).exists()
+        return not JokeBase.objects.filter(slug=slug).exists()
 
     def clean(self):
         """
@@ -121,12 +113,16 @@ class Joke(models.Model):
 
         Updates the slug if the setup has changed or if the slug is not set.
         """
-        if not self.slug or self.setup != Joke.objects.get(pk=self.pk).setup:
+        if not self.slug or self.setup != JokeBase.objects.get(pk=self.pk).setup:
             new_slug = slugify(self.setup)
+
+            # truncate the slug to the max field length
+            max_length = self._meta.get_field('slug').max_length
+            new_slug = new_slug[:max_length]
 
             # ensure the slug is unique by appending a counter if necessary
             slug_counter = 1
-            while not Joke.is_slug_unique(new_slug):
+            while not JokeBase.is_slug_unique(new_slug):
                 new_slug = f"{new_slug}-{slug_counter}"
                 slug_counter += 1
 
@@ -150,7 +146,7 @@ class Joke(models.Model):
             if not tag.jokes.exclude(id=self.id).exists():
                 tag.delete()
         # delete the joke
-        super(Joke, self).delete(*args, **kwargs)
+        super(JokeBase, self).delete(*args, **kwargs)
 
     def add_reaction(self,
         reaction_emoji: str,

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 
-from ncjm.models import Joke, Tag, JokeTag
+from ncjm.models import CornyJoke, Tag, JokeTag
 from .JokeTagInlineForm import JokeTagInlineForm
 from .filters import OrphanedJokesFilter, OrphanedTagsFilter
 from .inlines import JokeInline
@@ -32,9 +32,9 @@ class JokeAdmin(admin.ModelAdmin):
         Override get_object to include soft-deleted jokes.
         """
         try:
-            obj = Joke._default_manager.get(pk=joke_id)
+            obj = CornyJoke._default_manager.get(pk=joke_id)
         except ObjectDoesNotExist:
-            obj = Joke.objects.none()
+            obj = CornyJoke.objects.none()
         return obj
 
     def delete_queryset(self, request, jokes_queryset):

@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from ncjm.models import Joke
+from ncjm.models import CornyJoke
 
 class JokeInline(admin.TabularInline):
     """
     Displays the associated jokes for a tag in the admin panel.
     """
-    model = Joke.tags.through
+    model = CornyJoke.tags.through
     extra = 0
     verbose_name = "Associated Joke"
     verbose_name_plural = "Associated Jokes"

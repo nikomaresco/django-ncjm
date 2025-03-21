@@ -6,33 +6,33 @@ from django.urls import reverse
 from django.db.models import Q
 from django.core.paginator import Paginator
 
-from ncjm.models import Joke, Tag
-from ncjm.models.Joke import AlreadyReactedException
+from ncjm.models import CornyJoke, Tag
+from ncjm.ncjm.models.CornyJoke import AlreadyReactedException
 from .forms.AddAJokeForm import AddAJokeForm
 
 def index(request, joke_id=None, joke_slug=None):
     joke = None
 
     if joke_id:
-        joke = get_object_or_404(Joke, pk=joke_id)
+        joke = get_object_or_404(CornyJoke, pk=joke_id)
     elif joke_slug:
-        joke = get_object_or_404(Joke, slug=joke_slug)
+        joke = get_object_or_404(CornyJoke, slug=joke_slug)
     
     if not joke or joke.is_deleted:
         # grab a random nondeleted, approved joke
-        joke = Joke.objects.filter(
+        joke = CornyJoke.objects.filter(
             is_approved=True,
             is_deleted=False,
         ).order_by("?").first()
 
     # grab the number of approved jokes
-    total_approved_jokes = Joke.objects.filter(
+    total_approved_jokes = CornyJoke.objects.filter(
         is_approved=True,
         is_deleted=False,
     ).count()
 
     # grab the number of jokes in the queue
-    jokes_in_queue = Joke.objects.filter(
+    jokes_in_queue = CornyJoke.objects.filter(
         is_approved=False,
         is_deleted=False,
     ).count()
@@ -97,7 +97,7 @@ def search(request):
 
     if search_term:
         tags = Tag.objects.filter(tag_text__icontains=search_term)
-        jokes_results = Joke.objects.filter(
+        jokes_results = CornyJoke.objects.filter(
             Q(tags__in=tags) | Q(submitter_name__icontains=search_term),
             is_deleted=False,
         ).distinct()
@@ -125,7 +125,7 @@ def add_reaction(request):
             joke_id = data.get("joke_id")
             reaction_emoji = data.get("reaction_emoji")
 
-            joke = get_object_or_404(Joke, pk=joke_id)
+            joke = get_object_or_404(CornyJoke, pk=joke_id)
             joke.add_reaction(
                 reaction_emoji=reaction_emoji,
                 ip_address=request.META.get("REMOTE_ADDR"),

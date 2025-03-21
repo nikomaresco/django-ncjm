@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ncjm.models import Joke, Tag
+from ncjm.models import CornyJoke, Tag
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class JokeSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Joke
+        model = CornyJoke
         fields = [
             "id",
             "setup",
@@ -30,7 +30,7 @@ class JokeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags_data = validated_data.pop("tags", [])
 
-        joke = Joke.objects.create(**validated_data)
+        joke = CornyJoke.objects.create(**validated_data)
 
         # add tags to the joke
         for tag_data in tags_data:

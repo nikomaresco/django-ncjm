@@ -1,6 +1,6 @@
 from django.db import models
 
-from ncjm.models import Joke, Tag
+from ncjm.models import JokeBase, Tag
 
 class JokeTag(models.Model):
     created_at = models.DateTimeField(
@@ -9,7 +9,7 @@ class JokeTag(models.Model):
     )
 
     joke = models.ForeignKey(
-        Joke,
+        JokeBase,
         help_text="The joke that was tagged",
         on_delete=models.CASCADE,
     )

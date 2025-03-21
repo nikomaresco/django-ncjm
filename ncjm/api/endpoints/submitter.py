@@ -7,11 +7,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
-from ncjm.models import Joke
+from ncjm.models import CornyJoke
 from ..serializers import JokeSerializer
 
 def _get_jokes_by_submitter(request, submitter_name):
-    jokes = Joke.objects.filter(submitter_name=submitter_name)
+    jokes = CornyJoke.objects.filter(submitter_name=submitter_name)
 
     page = request.query_params.get("page", 1)
     per_page = request.query_params.get("per_page", 10)

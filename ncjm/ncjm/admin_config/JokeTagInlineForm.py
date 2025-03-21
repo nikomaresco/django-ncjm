@@ -3,7 +3,7 @@ import logging
 from django import forms
 from django.db import transaction
 
-from ncjm.models import Joke, Tag
+from ncjm.models import CornyJoke, Tag
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class JokeTagInlineForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Joke
+        model = CornyJoke
         fields = ["setup", "punchline", "submitter_name", "tags",]
 
     # ensures that the initial value of the tags field is a space-separated list of the current tags

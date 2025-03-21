@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV2Invisible
-from ncjm.models import Joke, Tag
+from ncjm.models import CornyJoke, Tag
 
 
 class AddAJokeForm(forms.ModelForm):
@@ -26,7 +26,7 @@ class AddAJokeForm(forms.ModelForm):
     ))
 
     class Meta:
-        model = Joke
+        model = CornyJoke
         fields = ["setup", "punchline", "submitter_name", "tags", "captcha", ]
         widgets = {
             "submitter_name": forms.TextInput(

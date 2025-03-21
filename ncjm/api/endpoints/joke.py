@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from ncjm.models import Joke
+from ncjm.models import CornyJoke
 from ..serializers import JokeSerializer
 
 logger = logging.getLogger(__name__)
@@ -19,11 +19,11 @@ def _get_joke(request):
     joke_slug = request.query_params.get("slug")
 
     if joke_id:
-        return get_object_or_404(Joke, id=joke_id)
+        return get_object_or_404(CornyJoke, id=joke_id)
     if joke_slug:
-        return get_object_or_404(Joke, slug=joke_slug)
+        return get_object_or_404(CornyJoke, slug=joke_slug)
 
-    jokes = Joke.objects.all()
+    jokes = CornyJoke.objects.all()
     if jokes:
         joke = random.choice(jokes)
         serializer = JokeSerializer(joke)
@@ -49,7 +49,7 @@ def _create_joke(request):
 
 def _update_joke(request):
     joke_id = request.query_params.get("id")
-    joke = get_object_or_404(Joke, id=joke_id)
+    joke = get_object_or_404(CornyJoke, id=joke_id)
     serializer = JokeSerializer(joke, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
@@ -62,7 +62,7 @@ def _update_joke(request):
 
 def _delete_joke(request):
     joke_id = request.query_params.get("id")
-    joke = get_object_or_404(Joke, id=joke_id)
+    joke = get_object_or_404(CornyJoke, id=joke_id)
     joke.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
