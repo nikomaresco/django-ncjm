@@ -4,6 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV2Invisible
+
 from ncjm.models import CornyJoke, Tag
 
 
@@ -27,24 +28,12 @@ class AddAJokeForm(forms.ModelForm):
 
     class Meta:
         model = CornyJoke
-        fields = ["setup", "punchline", "submitter_name", "tags", "captcha", ]
+        fields = ["submitter_name", "tags", "captcha",]
         widgets = {
             "submitter_name": forms.TextInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "e.g., 'Funny McJokerson'",
-                }
-            ),
-            "setup": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "e.g., 'Why did the chicken cross the road?'",
-                }
-            ),
-            "punchline": forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "e.g., 'To get to the other side!'",
                 }
             ),
             "tags": forms.Textarea(
@@ -93,12 +82,6 @@ class AddAJokeForm(forms.ModelForm):
         if not field_value:
             raise forms.ValidationError(f"{field_name.capitalize()} is required.")
         return field_value
-
-    def clean_setup(self):
-        return self._validate_text_field_not_empty("setup")
-
-    def clean_punchline(self):
-        return self._validate_text_field_not_empty("punchline")
 
     def save(self, commit=True):
         joke = super().save(commit=False)
