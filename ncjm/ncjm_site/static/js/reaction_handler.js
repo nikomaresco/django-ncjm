@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const reactionButtons = document.querySelectorAll(".reaction_button");
+    const reactionButtons = document.querySelectorAll(".reaction-button");
 
     reactionButtons.forEach(button => {
         button.addEventListener("click", function() {
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status == "success") {
-                    const countSpan = this.querySelector(".reaction_count");
+                    const countSpan = this.querySelector(".reaction-count");
                     countSpan.textContent = data.new_count;
                 } else {
                     alert(data.message);
