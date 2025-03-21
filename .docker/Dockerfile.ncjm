@@ -23,7 +23,7 @@ COPY requirements.txt /home/ncjm/requirements.txt
 RUN pip install --no-cache-dir -r /home/ncjm/requirements.txt
 
 # automatically collect static files when running docker build
-RUN python manage.py collectstatic --noinput --clear
+RUN python3 manage.py collectstatic --noinput --clear
 
 COPY ./ncjm/ /home/ncjm/app
 
