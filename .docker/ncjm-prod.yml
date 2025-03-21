@@ -8,6 +8,7 @@ services:
       - ../.env
     volumes:
       - ../ncjm/db.sqlite3:/home/ncjm/app/db.sqlite3
+      - ../public_collected/:/home/ncjm/app/public_collected
     working_dir: /home/ncjm/app
     command: ["gunicorn", "ncjm.wsgi:application", "--bind", "0.0.0.0:8000"]
     ports:
