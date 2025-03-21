@@ -167,6 +167,9 @@ class Joke(models.Model):
         """
         from ncjm.models import ReactionTracker
 
+        if self.is_deleted:
+            raise ValidationError("Cannot react to a deleted joke.")
+        
         if ReactionTracker.objects.filter(
             joke=self,
             ip_address=ip_address,

@@ -11,11 +11,14 @@ from ncjm.models.Joke import AlreadyReactedException
 from .forms.AddAJokeForm import AddAJokeForm
 
 def index(request, joke_id=None, joke_slug=None):
+    joke = None
+
     if joke_id:
         joke = get_object_or_404(Joke, pk=joke_id)
     elif joke_slug:
         joke = get_object_or_404(Joke, slug=joke_slug)
-    else:
+    
+    if not joke or joke.is_deleted:
         # grab a random nondeleted, approved joke
         joke = Joke.objects.filter(
             is_approved=True,
@@ -95,7 +98,8 @@ def search(request):
     if search_term:
         tags = Tag.objects.filter(tag_text__icontains=search_term)
         jokes_results = Joke.objects.filter(
-            Q(tags__in=tags) | Q(submitter_name__icontains=search_term)
+            Q(tags__in=tags) | Q(submitter_name__icontains=search_term),
+            is_deleted=False,
         ).distinct()
 
     paginator = Paginator(jokes_results, 10)  # Show 10 jokes per page
