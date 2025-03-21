@@ -5,7 +5,7 @@ from ncjm.models import JokeBase
 
 class LongJoke(JokeBase):
     transcript = models.TextField(
-        help_text="The setup of the joke."
+        help_text="The text of the joke."
     )
 
     media_url = models.URLField(
