@@ -1,0 +1,61 @@
+<div id="longjoke-form" style="display: none;">
+    <h3>Corny Joke</h3>
+    <form id="add-longjoke" method="post">
+        {% csrf_token %}
+
+        {{ form.captcha }}
+
+        <fieldset>
+            <legend>1. Start with your name</legend>
+            <p>
+                Jokes are searchable by name. Be sure to use the same name each time you submit a
+                joke.
+            </p>
+            <div class="form-group">
+                <label for="{{ form.submitter_name.id_for_label }}">Your name:</label>
+                {{ form.submitter_name }}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>2. Now about this joke...</legend>
+
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">Title:</label>
+                {{ form.title }}
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label for="{{ form.punchline.id_for_label }}">Transcript:</label>
+                {{ form.transcript }}
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label for="{{ form.media_url.id_for_label }}">Media URL:</label>
+                {{ form.media_url }}
+                <div class="help-text">{{ form.media_url.help_text }}</div>
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label for="{{ form.notes.id_for_label }}">Notes:</label>
+                {{ form.notes }}
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label for="{{ form.hidden_notes.id_for_label }}">Hidden notes:</label>
+                {{ form.hidden_notes }}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>3. Tag your joke</legend>
+            <p>
+                Tag your joke with one or more keywords. Separate
+                tags with spaces. Tags must be three letters or more.
+            </p>
+            <div class="form-group">
+                <label for="{{ form.tags.id_for_label }}">Tags:</label>
+                {{ form.tags }}
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <input type="hidden" name="form_type" value="longjoke" />
+    </form>
+</div>
