@@ -18,7 +18,7 @@ def index(request, joke_id=None, joke_slug=None):
     elif joke_slug:
         joke = get_object_or_404(JokeBase, slug=joke_slug)
     #TODO: add joke type switcher
-    if not joke or joke.is_deleted:
+    if not joke or joke.is_deleted or not joke.is_approved:
         # grab a random nondeleted, approved joke
         joke = JokeBase.objects.filter(
             is_approved=True,
