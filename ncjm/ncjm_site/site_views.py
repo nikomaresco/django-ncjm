@@ -51,8 +51,8 @@ def index(request, joke_id=None, joke_slug=None):
 
 def add_joke(request):
     if request.method == "POST":
-        form_type = request.POST.get("form_type", "corny")
-        if form_type == "long":
+        form_type = request.POST.get("form_type", "cornyjoke")
+        if form_type == "longjoke":
             form = AddLongJokeForm(request.POST)
         else:
             form = AddCornyJokeForm(request.POST)
@@ -94,11 +94,11 @@ def add_joke(request):
         
         return render(request, "add_joke.html", context=context)
 
-    corny_form = AddCornyJokeForm()
-    long_form = AddLongJokeForm()
+    cornyjoke_form = AddCornyJokeForm()
+    longjoke_form = AddLongJokeForm()
     context = {
-        "corny_form": corny_form,
-        "long_form": long_form,
+        "cornyjoke_form": cornyjoke_form,
+        "longjoke_form": longjoke_form,
     }
     return render(request, "add_joke.html", context=context)
 
