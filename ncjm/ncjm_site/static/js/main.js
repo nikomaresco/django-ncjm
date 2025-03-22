@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
+
+    // handle joke reactions
     const reactionButtons = document.querySelectorAll(".reaction-button");
 
     reactionButtons.forEach(button => {
@@ -30,5 +32,35 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error("Error:", error);
             });
         });
+    });
+
+    // handle form switching
+    const showForm = (formType) => {
+        document.getElementById("cornyjoke-form").classList.add("hidden");
+        document.getElementById("longjoke-form").classList.add("hidden");
+
+        if (formType === "long") {
+            document.getElementById("longjoke-form").classList.remove("hidden");
+        } else {
+            document.getElementById("cornyjoke-form").classList.remove("hidden");
+        }
+    }
+
+    // show the appropriate form based on the initial form type
+    // default to corny form if no initial form type is set
+    const initialFormType = document.querySelector('input[name="form_type"]').value;
+    if (initialFormType === "long") {
+        showForm("long");
+    } else {
+        showForm("corny");
+    }
+
+    // add event listeners to the buttons
+    document.getElementById("cornyjoke-button").addEventListener("click", function() {
+        showForm("corny");
+    });
+
+    document.getElementById("longjoke-button").addEventListener("click", function() {
+        showForm("long");
     });
 });
