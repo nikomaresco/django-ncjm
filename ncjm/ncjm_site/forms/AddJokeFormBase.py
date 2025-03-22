@@ -8,7 +8,7 @@ from django_recaptcha.widgets import ReCaptchaV2Invisible
 from ncjm.models import CornyJoke, Tag
 
 
-class AddAJokeForm(forms.ModelForm):
+class AddJokeFormBase(forms.ModelForm):
     tags = forms.CharField(
         help_text="Enter tags separated by commas.",
         required=False,

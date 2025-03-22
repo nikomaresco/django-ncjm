@@ -6,33 +6,33 @@ from django.urls import reverse
 from django.db.models import Q
 from django.core.paginator import Paginator
 
-from ncjm.models import CornyJoke, Tag
+from ncjm.models import JokeBase, CornyJoke, LongJoke, Tag
 from ncjm.ncjm.models.CornyJoke import AlreadyReactedException
-from .forms.AddAJokeForm import AddAJokeForm
+from .forms import AddCornyJokeForm, AddLongJokeForm
 
 def index(request, joke_id=None, joke_slug=None):
     joke = None
 
     if joke_id:
-        joke = get_object_or_404(CornyJoke, pk=joke_id)
+        joke = get_object_or_404(JokeBase, pk=joke_id)
     elif joke_slug:
-        joke = get_object_or_404(CornyJoke, slug=joke_slug)
-    
+        joke = get_object_or_404(JokeBase, slug=joke_slug)
+    #TODO: add joke type switcher
     if not joke or joke.is_deleted:
         # grab a random nondeleted, approved joke
-        joke = CornyJoke.objects.filter(
+        joke = JokeBase.objects.filter(
             is_approved=True,
             is_deleted=False,
         ).order_by("?").first()
 
     # grab the number of approved jokes
-    total_approved_jokes = CornyJoke.objects.filter(
+    total_approved_jokes = JokeBase.objects.filter(
         is_approved=True,
         is_deleted=False,
     ).count()
 
     # grab the number of jokes in the queue
-    jokes_in_queue = CornyJoke.objects.filter(
+    jokes_in_queue = JokeBase.objects.filter(
         is_approved=False,
         is_deleted=False,
     ).count()
@@ -51,14 +51,19 @@ def index(request, joke_id=None, joke_slug=None):
 
 def add_joke(request):
     if request.method == "POST":
-        form = AddAJokeForm(request.POST)
+        form_type = request.POST.get("form_type", "corny")
+        if form_type == "long":
+            form = AddLongJokeForm(request.POST)
+        else:
+            form = AddCornyJokeForm(request.POST)
+
         try:
             # handle valid form submission
             if form.is_valid():
                 form.save()
 
                 submitter_name = form.cleaned_data["submitter_name"]
-                new_form = AddAJokeForm(
+                new_form = AddCornyJokeForm(
                     initial={"submitter_name": submitter_name},
                 )
 
@@ -84,12 +89,18 @@ def add_joke(request):
                 "status": "error",
                 "errors": e,
                 "form": form,
+                "form_type": form_type,
             }
         
         return render(request, "add_joke.html", context=context)
 
-    form = AddAJokeForm()
-    return render(request, "add_joke.html", {"form": form})
+    corny_form = AddCornyJokeForm()
+    long_form = AddLongJokeForm()
+    context = {
+        "corny_form": corny_form,
+        "long_form": long_form,
+    }
+    return render(request, "add_joke.html", context=context)
 
 def search(request):
     search_term = request.GET.get("q", "")
@@ -125,7 +136,7 @@ def add_reaction(request):
             joke_id = data.get("joke_id")
             reaction_emoji = data.get("reaction_emoji")
 
-            joke = get_object_or_404(CornyJoke, pk=joke_id)
+            joke = get_object_or_404(JokeBase, pk=joke_id)
             joke.add_reaction(
                 reaction_emoji=reaction_emoji,
                 ip_address=request.META.get("REMOTE_ADDR"),

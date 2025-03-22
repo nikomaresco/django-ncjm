@@ -6,7 +6,7 @@ from . import AddJokeFormBase
 from ncjm.models import CornyJoke, Tag
 
 
-class AddAJokeForm(AddJokeFormBase):
+class AddCornyJokeForm(AddJokeFormBase):
     class Meta:
         model = CornyJoke
         fields = AddJokeFormBase.Meta.fields + ["setup", "punchline",]
