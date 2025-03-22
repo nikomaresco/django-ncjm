@@ -4,10 +4,6 @@
  * containers
 ***/
 
-.normal-case {
-    text-transform: none !important;
-}
-
 body {
 	font-family: Arial, sans-serif;
     color: #222;
@@ -119,7 +115,9 @@ fieldset p {
     margin: 0;
 }
 
-
+.normal-case {
+    text-transform: none !important;
+}
 
 .midgray, .midgrey {
 	color: #666666;
