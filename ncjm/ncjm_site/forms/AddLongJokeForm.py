@@ -8,6 +8,12 @@ from ncjm.models import LongJoke, Tag
 
 
 class AddLongJokeForm(AddJokeFormBase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        supported_platforms = ", ".join(settings.NCJM_MEDIA_PROVIDERS)
+        self.fields["media_url"].help_text = f"Supported platforms: {supported_platforms}"
+
     class Meta:
         model = LongJoke
         fields = AddJokeFormBase.Meta.fields + [
@@ -22,31 +28,33 @@ class AddLongJokeForm(AddJokeFormBase):
             "title": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "The title of the joke.",
+                    "placeholder": "What's the name of this joke?",
+                    "autocomplete": "off",
                 }
             ),
-            "transcript": forms.TextInput(
+            "transcript": forms.Textarea(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "The text of the joke.",
+                    "placeholder": "Tell the joke!",
                 }
             ),
             "media_url": forms.URLInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "A URL to an audio or video recording of the joke.",
+                    "autocomplete": "off",
                 }
             ),
-            "notes": forms.TextInput(
+            "notes": forms.Textarea(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "Any notes about the joke.",
+                    "placeholder": "Any notes about the joke, like tips on telling the joke.",
                 }
             ),
-            "hidden_notes": forms.TextInput(
+            "hidden_notes": forms.Textarea(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "Any notes about the joke that should not be immediately visible.",
+                    "placeholder": "Any notes about the joke that should not be immediately visible, such as an explanation.",
                 }
             ),
         }
