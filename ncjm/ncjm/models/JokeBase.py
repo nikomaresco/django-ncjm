@@ -119,12 +119,13 @@ class JokeBase(models.Model):
         Updates the slug if the setup has changed or if the slug is not set.
         """
         content_value = self._get_content_field()
-
-        if not self.slug or content_value != JokeBase.objects.get(pk=self.pk)._get_content_field:
+        slug_has_changed = content_value != JokeBase.objects.get(pk=self.pk)._get_content_field
+        
+        if not self.slug or slug_has_changed:
             new_slug = slugify(content_value)
 
             # truncate the slug to the max field length
-            max_length = self._meta.get_field('slug').max_length
+            max_length = self._meta.get_field("slug").max_length
             new_slug = new_slug[:max_length]
 
             # ensure the slug is unique by appending a counter if necessary
