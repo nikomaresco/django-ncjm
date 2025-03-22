@@ -11,3 +11,7 @@ class CornyJoke(JokeBase):
     punchline = models.TextField(
         help_text="The punchline of the joke.",
     )
+
+def _get_content_field(self):
+    """Returns the content field of the joke."""
+    return self.setup

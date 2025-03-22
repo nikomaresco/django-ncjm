@@ -107,14 +107,21 @@ class JokeBase(models.Model):
         if not self.reactions or self.reactions == {}:
             self.reactions = self.default_reactions.copy()
 
+    @staticmethod
+    def _get_content_field(self):
+        """Returns the content field of the joke."""
+        raise NotImplementedError("Subclasses must implement this method.")
+
     def save(self, *args, **kwargs):
         """
         Saves the joke instance.
 
         Updates the slug if the setup has changed or if the slug is not set.
         """
-        if not self.slug or self.setup != JokeBase.objects.get(pk=self.pk).setup:
-            new_slug = slugify(self.setup)
+        content_value = self._get_content_field()
+
+        if not self.slug or content_value != JokeBase.objects.get(pk=self.pk)._get_content_field:
+            new_slug = slugify(content_value)
 
             # truncate the slug to the max field length
             max_length = self._meta.get_field('slug').max_length
