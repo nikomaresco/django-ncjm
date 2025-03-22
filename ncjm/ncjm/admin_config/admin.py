@@ -4,15 +4,16 @@ from django.core.exceptions import ObjectDoesNotExist
 from ncjm.models import CornyJoke, Tag, JokeTag
 from .JokeTagInlineForm import JokeTagInlineForm
 from .filters import OrphanedJokesFilter, OrphanedTagsFilter
-from .inlines import JokeInline
+from .inlines import JokeBaseInline
 from .actions import joke__approve_jokes, joke__unapprove_jokes, joke__hard_delete_jokes
 
 ### Admin classes
-class JokeAdmin(admin.ModelAdmin):
+#TODO: refactor into multiple admin classes for each joke variant
+class JokeBaseAdmin(admin.ModelAdmin):
     form = JokeTagInlineForm
     readonly_fields = ("slug",)
-    list_display = ("setup", "punchline", "submitter_name", "created_at", "is_approved", "is_deleted",)
-    search_fields = ("setup", "punchline", "submitter_name",)
+    list_display = ("submitter_name", "created_at", "is_approved", "is_deleted",)
+    search_fields = ("submitter_name",)
     list_filter = ("is_approved", "is_deleted", "created_at", OrphanedJokesFilter,)
     ordering = ("-created_at",)
     actions = [joke__approve_jokes, joke__unapprove_jokes, joke__hard_delete_jokes,]
@@ -50,15 +51,30 @@ class JokeAdmin(admin.ModelAdmin):
         """
         joke_record.delete()
 
+class CornyJokeAdmin(JokeBaseAdmin):
+    list_display = ("setup", "punchline",) + JokeBaseAdmin.list_display
+    search_fields = ("setup", "punchline",) + JokeBaseAdmin.search_fields
+
+class LongJokeAdmin(JokeBaseAdmin):
+    list_display = (
+        "title",
+    ) + JokeBaseAdmin.list_display
+    search_fields = (
+        "title",
+        "transcript",
+        "notes",
+        "hidden_notes",
+    ) + JokeBaseAdmin.search_fields
+
 class TagAdmin(admin.ModelAdmin):
     list_display = ("tag_text",)
     search_fields = ("tag_text",)
     ordering = ("tag_text",)
     list_filter = (OrphanedTagsFilter,)
-    inlines = [JokeInline,]
+    inlines = [JokeBaseInline,]
 
 class JokeTagAdmin(admin.ModelAdmin):
     list_display = ("joke", "tag", "created_at",)
-    search_fields = ("joke__setup", "tag__tag_text",)
+    search_fields = ("tag__tag_text",)
     ordering = ("-created_at",)
 
