@@ -16,6 +16,7 @@ class AddCornyJokeForm(AddJokeFormBase):
                 attrs={
                     "class": "form-control",
                     "placeholder": "e.g., 'Why did the chicken cross the road?'",
+                    "autocomplete": "off",
                 }
             ),
             "punchline": forms.Textarea(
