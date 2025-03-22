@@ -4,15 +4,27 @@ from django import forms
 from django.conf import settings
 
 from . import AddJokeFormBase
-from ncjm.models import CornyJoke, Tag
+from ncjm.models import LongJoke, Tag
 
 
-class AddAJokeForm(AddJokeFormBase):
+class AddLongJokeForm(AddJokeFormBase):
     class Meta:
-        model = CornyJoke
-        fields = AddJokeFormBase.Meta.fields + ["transcript", "media_url",]
+        model = LongJoke
+        fields = AddJokeFormBase.Meta.fields + [
+            "title",
+            "transcript",
+            "media_url",
+            "notes",
+            "hidden_notes",
+        ]
         widgets = {
             **AddJokeFormBase.Meta.widgets,
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "The title of the joke.",
+                }
+            ),
             "transcript": forms.TextInput(
                 attrs={
                     "class": "form-control",
@@ -23,6 +35,18 @@ class AddAJokeForm(AddJokeFormBase):
                 attrs={
                     "class": "form-control",
                     "placeholder": "A URL to an audio or video recording of the joke.",
+                }
+            ),
+            "notes": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Any notes about the joke.",
+                }
+            ),
+            "hidden_notes": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Any notes about the joke that should not be immediately visible.",
                 }
             ),
         }
