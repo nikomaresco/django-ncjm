@@ -39,6 +39,7 @@ def index(request, joke_id=None, joke_slug=None):
 
     context = {
         "joke": joke,
+        "joke_type": joke.__class__.__name__,
         "total_approved_jokes": total_approved_jokes,
         "jokes_in_queue": jokes_in_queue,
     }
