@@ -7,12 +7,9 @@
     <div class="single-column">
         <article id="joke">
 
-            <h2 id="joke-setup">
-                <a href="{% url "index" %}">{{ joke.setup }}</a>
-            </h2>
-            <h2 id="joke-punchline">
-                <a href="{% url "index" %}">{{ joke.punchline }}</a>
-            </h2>
+            <section id="joke">
+                {% include "joke_types/"|add:joke_type|add:".html" %}
+            </section>
 
             <section id="joke-meta">
                 <p class="lightgray">

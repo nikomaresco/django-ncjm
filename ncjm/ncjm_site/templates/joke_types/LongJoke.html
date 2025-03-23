@@ -1,0 +1,25 @@
+<h2 id="joke-title">
+    <a href="{% url "index" %}">{{ joke.title }}</a>
+</h2>
+
+<div id="joke-transcript">
+    {{ joke.transcript_html }}
+</div>
+
+{% if joke.notes %}
+<div id="joke-notes">
+    {{ joke.notes_html }}
+</div>
+{% endif %}
+
+{% if joke.hidden_notes %}
+<div id="joke-hidden">
+    {{ joke.hidden_notes_html }}
+</div>
+{% endif %}
+
+{% if joke.media_url %}
+<div id="joke-media">
+    <a href="{{ joke.media_url }}" target="_blank">View Media</a>
+</div>
+{% endif %}
