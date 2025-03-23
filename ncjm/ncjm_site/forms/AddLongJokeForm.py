@@ -36,6 +36,7 @@ class AddLongJokeForm(AddJokeFormBase):
                 attrs={
                     "class": "form-control",
                     "placeholder": "Tell the joke!",
+                    "class": "markdown-editor",
                 }
             ),
             "media_url": forms.URLInput(

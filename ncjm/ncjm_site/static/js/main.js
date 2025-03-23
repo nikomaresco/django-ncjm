@@ -36,31 +36,31 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // handle form switching
     const showForm = (formType) => {
-        document.getElementById("cornyjoke-form").classList.add("hidden");
-        document.getElementById("longjoke-form").classList.add("hidden");
+        document.getElementById("CornyJoke-form").classList.add("hidden");
+        document.getElementById("LongJoke-form").classList.add("hidden");
 
         if (formType === "long") {
-            document.getElementById("longjoke-form").classList.remove("hidden");
+            document.getElementById("LongJoke-form").classList.remove("hidden");
         } else {
-            document.getElementById("cornyjoke-form").classList.remove("hidden");
+            document.getElementById("CornyJoke-form").classList.remove("hidden");
         }
     }
 
     // show the appropriate form based on the initial form type
     // default to corny form if no initial form type is set
     const initialFormType = document.querySelector('input[name="form_type"]').value;
-    if (initialFormType === "long") {
-        showForm("long");
+    if (initialFormType === "LongJoke") {
+        showForm("LongJoke");
     } else {
-        showForm("corny");
+        showForm("CornyJoke");
     }
 
     // add event listeners to the buttons
-    document.getElementById("cornyjoke-button").addEventListener("click", function() {
-        showForm("corny");
+    document.getElementById("CornyJoke-button").addEventListener("click", function() {
+        showForm("CornyJoke");
     });
 
-    document.getElementById("longjoke-button").addEventListener("click", function() {
-        showForm("long");
+    document.getElementById("LongJoke-button").addEventListener("click", function() {
+        showForm("LongJoke");
     });
 });

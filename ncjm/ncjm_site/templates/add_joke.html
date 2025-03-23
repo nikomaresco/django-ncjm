@@ -1,80 +1,90 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+{% endblock %}
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+{% endblock %}
+
 {% block title %}Add a new joke{% endblock %}
 
 {% block content %}
-    <div class="two-column">
-        <div class="column" style="flex: 3;max-width: 700px;">
-            <article>
-                <h2>Add a new joke</h2>
+<div class="two-column">
+    <div class="column" style="flex: 3;max-width: 700px;">
+        <article>
+            <h2>Add a new joke</h2>
 
-                <button id="cornyjoke-button" onclick="showForm('corny')">
-                    Corny Joke
-                </button>
-                <button id="longjoke-button" onclick="showForm('long')">
-                    Long Joke
-                </button>
-            
-                <div class="message">
-                    {% if not status %}
-                    <p>Use the form below to submit a joke to the site.</p>
-                    <p>
-                        It will be added to the review queue and approved, if
-                        deemed funny.
-                    </p>
-                    {% elif status == "success" %}
-                        <p>Thanks for the joke!</p>
-                        <p>Got another one? Add it below!</p>
-                    {% elif status == "error" %}
-                    <p>
-                        There was an error with your submission. Please try again.
-                        {% if errors %}
-                        <h3>Errors:</h3>
-                            <ul class="add-joke-errors errors-list">
-                            {% for error in errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </p>
+            <button id="cornyjoke-button" onclick="showForm('corny')">
+                Corny Joke
+            </button>
+            <button id="longjoke-button" onclick="showForm('long')">
+                Long Joke
+            </button>
+        
+            <div class="message">
+                {% if not status %}
+                <p>Use the form below to submit a joke to the site.</p>
+                <p>
+                    It will be added to the review queue and approved, if
+                    deemed funny.
+                </p>
+                {% elif status == "success" %}
+                <p>Thanks for the joke!</p>
+                <p>Got another one? Add it below!</p>
+                {% elif status == "error" %}
+                <p>
+                    There was an error with your submission. Please try again.
+                    {% if errors %}
+                    <h3>Errors:</h3>
+                        <ul class="add-joke-errors errors-list">
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
                     {% endif %}
-
-                    <p>
-                        Or, go back to <a href="/" title="niko's corny joke machine">nikoscornyjokemachine.com</a>.
-                    </p>
-                </div>
-
-                {{ cornyjoke_form }}
-
-                {{ longjoke_form }}
-                
-            </article>
-        </div>
-
-        <div class="column" style="flex: 1.5;">
-            <aside id="terms">
-                <h3>Terms of submission:</h3>
-                <p>
-                    All jokes go through an approval process, and may be edited.
                 </p>
+                {% endif %}
+
                 <p>
-                    By submitting content to <a href="http://www.nikoscornyjokemachine.com/"
-                    title="niko's corny joke machine">nikoscornyjokemachine.com</a>,
-                    you agree to the following:
+                    Or, go back to <a href="/" title="niko's corny joke machine">nikoscornyjokemachine.com</a>.
                 </p>
-                <ul class="chevron-list">
-                    <li>
-                        The content you are submitting is not under copyright.
-                    </li>
-                    <li>
-                        <s>The joke is at <strong>least</strong> a "groaner"</s>.
-                    </li>
-                    <li>
-                        You're not a robot. Although if you're a funny robot, you
-                        get a pass.
-                    </li>
-                </ul>
-            </aside>
-        </div>
+            </div>
+
+            {{ cornyjoke_form }}
+
+            {{ longjoke_form }}
+            
+        </article>
     </div>
+
+    <div class="column" style="flex: 1.5;">
+        <aside id="terms">
+            <h3>Terms of submission:</h3>
+            <p>
+                All jokes go through an approval process, and may be edited.
+            </p>
+            <p>
+                By submitting content to <a href="http://www.nikoscornyjokemachine.com/"
+                title="niko's corny joke machine">nikoscornyjokemachine.com</a>,
+                you agree to the following:
+            </p>
+            <ul class="chevron-list">
+                <li>
+                    The content you are submitting is not under copyright.
+                </li>
+                <li>
+                    <s>The joke is at <strong>least</strong> a "groaner"</s>.
+                </li>
+                <li>
+                    You're not a robot. Although if you're a funny robot, you
+                    get a pass.
+                </li>
+            </ul>
+        </aside>
+    </div>
+</div>
+<script>
+    var simplemde = new SimpleMDE({ element: document.querySelector('.markdown-editor') });
+</script>
 {% endblock %}
