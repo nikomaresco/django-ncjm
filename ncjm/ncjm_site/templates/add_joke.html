@@ -15,10 +15,10 @@
         <article>
             <h2>Add a new joke</h2>
 
-            <button id="cornyjoke-button" onclick="showForm('corny')">
+            <button id="CornyJoke-button" onclick="showForm('CornyJoke')">
                 Corny Joke
             </button>
-            <button id="longjoke-button" onclick="showForm('long')">
+            <button id="LongJoke-button" onclick="showForm('LongJoke')">
                 Long Joke
             </button>
         
@@ -51,9 +51,8 @@
                 </p>
             </div>
 
-            {{ cornyjoke_form }}
-
-            {{ longjoke_form }}
+            {% include "joke_types/CornyJoke_form.html" %}
+            {% include "joke_types/LongJoke_form.html" %}
             
         </article>
     </div>
