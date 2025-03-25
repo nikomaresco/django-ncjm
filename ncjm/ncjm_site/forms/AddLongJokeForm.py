@@ -50,12 +50,14 @@ class AddLongJokeForm(AddJokeFormBase):
                 attrs={
                     "class": "form-control",
                     "placeholder": "Any notes about the joke, like tips on telling the joke.",
+                    "class": "markdown-editor",
                 }
             ),
             "hidden_notes": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "Any notes about the joke that should not be immediately visible, such as an explanation.",
+                    "class": "markdown-editor",
                 }
             ),
         }
