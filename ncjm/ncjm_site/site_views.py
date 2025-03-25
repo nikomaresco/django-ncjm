@@ -8,22 +8,35 @@ from django.core.paginator import Paginator
 
 from ncjm.models import JokeBase, CornyJoke, LongJoke, Tag
 from ncjm.ncjm.models.CornyJoke import AlreadyReactedException
-from .forms import AddCornyJokeForm, AddLongJokeForm
+from .forms import AddCornyJokeForm, AddLongJokeForm, JokeTypeSwitcherForm
 
 def index(request, joke_id=None, joke_slug=None):
     joke = None
+    #TODO: make this dynamic based on form_type or something like that
+    selected_types = ["CornyJoke", "LongJoke"]
+    q_filter = Q()
 
+    if request.method == "GET":
+        filter_form = JokeTypeSwitcherForm(request.GET)
+        if filter_form.is_valid():
+            selected_types = filter_form.cleaned_data["joke_types"]
+
+    # build Q filter for all selected joke types
+    for joke_type in selected_types:
+        q_filter |= Q(**{f"{joke_type.lower()}__isnull": False})
+
+    # grab the joke by id or slug
     if joke_id:
         joke = get_object_or_404(JokeBase, pk=joke_id)
     elif joke_slug:
         joke = get_object_or_404(JokeBase, slug=joke_slug)
-    #TODO: add joke type switcher
+
     if not joke or joke.is_deleted or not joke.is_approved:
         # grab a random nondeleted, approved joke
         joke = JokeBase.objects.filter(
             is_approved=True,
             is_deleted=False,
-        ).order_by("?").first()
+        ).filter(q_filter).order_by("?").first()
 
     # grab the number of approved jokes
     total_approved_jokes = JokeBase.objects.filter(
@@ -53,6 +66,7 @@ def index(request, joke_id=None, joke_slug=None):
 def add_joke(request):
     if request.method == "POST":
         form_type = request.POST.get("form_type", "cornyjoke")
+        #TODO: make this dynamic based on form_type or something like that
         if form_type == "longjoke":
             form = AddLongJokeForm(request.POST)
         else:
@@ -95,6 +109,7 @@ def add_joke(request):
         
         return render(request, "add_joke.html", context=context)
 
+    #TODO: make this dynamic based on form_type or something like that
     cornyjoke_form = AddCornyJokeForm()
     longjoke_form = AddLongJokeForm()
     context = {

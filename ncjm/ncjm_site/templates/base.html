@@ -10,9 +10,20 @@
 <body>
     <header>
         <h1><a href="/">Niko's Corny Joke Machine</a></h1>
+        <nav id="joke-type-selector">
+            <form method="post" action = "{% url "index" %}">
+                {% for choice in filter_form.joke_types.field.choices %}
+                    <label>
+                        <input type="checkbox" name="joke_types" value="{{ choice.0 }}"
+                            {% if choice.0 in filter_form.joke_types.value %}checked{% endif %} />
+                        {{ choice.1 }}
+                    </label>
+                {% endfor %}
+            </form>
+        </nav>
     </header>
     <main>
-        {% block content %}{% endblock %}
+    {% block content %}{% endblock %}
     </main>
     {% include "footer.html" %}
     {% block scripts %}{% endblock %}
