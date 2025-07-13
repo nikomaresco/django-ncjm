@@ -17,7 +17,7 @@ def index(request, joke_id=None, joke_slug=None):
         joke = get_object_or_404(Joke, pk=joke_id)
     elif joke_slug:
         joke = get_object_or_404(Joke, slug=joke_slug)
-    
+
     if not joke or joke.is_deleted:
         # grab a random nondeleted, approved joke
         joke = Joke.objects.filter(
@@ -85,7 +85,7 @@ def add_joke(request):
                 "errors": e,
                 "form": form,
             }
-        
+
         return render(request, "add_joke.html", context=context)
 
     form = AddAJokeForm()
@@ -100,7 +100,9 @@ def search(request):
         jokes_results = Joke.objects.filter(
             Q(tags__in=tags) | Q(submitter_name__icontains=search_term),
             is_deleted=False,
-        ).distinct()
+        ) \
+        .distinct() \
+        .order_by("-created_at")
 
     paginator = Paginator(jokes_results, 10)  # Show 10 jokes per page
     page_number = request.GET.get("page")
