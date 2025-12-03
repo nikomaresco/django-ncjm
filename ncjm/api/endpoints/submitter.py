@@ -22,7 +22,6 @@ def _get_jokes_by_submitter(request, submitter_name):
     serializer = JokeSerializer(jokes_paginated, many=True)
     return Response(serializer.data)
 
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_jokes_by_submitter(request, submitter_name):

@@ -104,14 +104,13 @@ def search(request):
         .distinct() \
         .order_by("-created_at")
 
-    paginator = Paginator(jokes_results, 10)  # Show 10 jokes per page
+    paginator = Paginator(jokes_results, 10)  # show 10 jokes per page
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
     for joke in page_obj:
         joke.full_url_by_id = request.build_absolute_uri(f"/id/{joke.id}/")
         joke.full_url_by_slug = request.build_absolute_uri(f"/slug/{joke.slug}/")
-
 
     context = {
         "search_term": search_term,
