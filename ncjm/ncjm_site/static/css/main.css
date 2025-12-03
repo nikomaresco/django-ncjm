@@ -73,7 +73,7 @@ main {
 
 h1 {
 	width: 100%;
-	padding: 8px 0 8px 16px;
+	padding: 8px 0;
 	font-size: 24px;
 	margin: 0;
 	background-color: black;
@@ -134,17 +134,22 @@ fieldset p {
 	/***
 	 * links
 	***/
+    a {
+        color: blue;
+    }
+
+    a:visited {
+        color: purple;
+    }
+
+
+    h1 a {
+        padding-left: 16px;
+    }
+
     h1 a, h1 a:visited {
         color: white;
     }
-
-	a {
-		color: blue;
-	}
-
-	a:visited {
-		color: purple;
-	}
 
 	h1 a, h2 a {
 		text-decoration: none;
