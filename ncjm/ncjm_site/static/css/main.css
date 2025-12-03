@@ -293,10 +293,15 @@ form {
 
     #navigation {
         padding: 16px 0;
+        font-size: 140%;
     }
 
     #navigation ul li {
         padding: 10px;
+    }
+    #navigation ul li::marker {
+        color: #444;
+        font-size: 140%;
     }
 
     .chevron-list {
