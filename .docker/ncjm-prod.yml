@@ -15,7 +15,7 @@ services:
       - "8000:8000"
 
   nginx:
-    image: nginx:1.19.0-alpine
+    image: nginx:alpine
     container_name: ncjm_nginx
     env_file:
       - ../.env
@@ -37,4 +37,11 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/lib/letsencrypt:/var/lib/letsencrypt
       - /var/log/letsencrypt:/var/log/letsencrypt
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    entrypoint: >
+      /bin/sh -c '
+      trap exit TERM;
+      while :; do
+        certbot renew --deploy-hook "docker kill -s HUP ncjm_nginx";
+        sleep 12h & wait $${!};
+      done;
+      '
