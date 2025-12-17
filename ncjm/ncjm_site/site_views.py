@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 
 from ncjm.models import JokeBase, CornyJoke, LongJoke, Tag
-from ncjm.ncjm.models.CornyJoke import AlreadyReactedException
+from ncjm.models.JokeBase import AlreadyReactedException
 from .forms import AddCornyJokeForm, AddLongJokeForm, JokeTypeSwitcherForm
 
 def index(request, joke_id=None, joke_slug=None):
