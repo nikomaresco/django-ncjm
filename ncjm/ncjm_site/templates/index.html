@@ -45,5 +45,5 @@
         const joke_id = {{ joke.id }};
         const react_url = "{% url "add_reaction" %}";
     </script>
-    <script src="{% static "/js/reaction_handler.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/reaction_handler.js" %}"></script>
 {% endblock %}
