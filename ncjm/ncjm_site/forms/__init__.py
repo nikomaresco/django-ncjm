@@ -1,0 +1,3 @@
+from .AddCornyJokeForm import AddCornyJokeForm
+from .AddLongJokeForm import AddLongJokeForm
+from .JokeTypeSwitcherForm import JokeTypeSwitcherForm

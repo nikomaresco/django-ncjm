@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse, HttpResponseRedirect, HttpRequest
+from django.http import Http404, JsonResponse, HttpResponseRedirect, HttpRequest
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -10,8 +10,58 @@ from ncjm.models import JokeBase, CornyJoke, LongJoke, Tag
 from ncjm.models.JokeBase import AlreadyReactedException
 from .forms import AddCornyJokeForm, AddLongJokeForm, JokeTypeSwitcherForm
 
-def index(request, joke_id=None, joke_slug=None):
-    joke = None
+import logging
+
+log = logging.getLogger(__name__)
+
+def _as_concrete_joke(
+    joke_base: JokeBase,
+) -> CornyJoke | LongJoke | None:
+    """
+    Given a JokeBase instance, return its concrete subclass instance (CornyJoke,
+    LongJoke, etc.). 
+    
+    Raises RuntimeError if no or multiple children are found.
+
+    :param joke_base: The JokeBase instance to convert.
+    :return: The concrete subclass instance of JokeBase.
+    """
+    if joke_base is None:
+        return None
+
+    # find reverse one-to-one relations created by multi-table inheritance
+    child_rels = [
+        f for f in joke_base._meta.get_fields()
+            if getattr(f, "one_to_one", False)
+            and getattr(f, "auto_created", False)
+            and not getattr(f, "concrete", True)
+    ]
+
+    concrete_children = []
+    for rel in child_rels:
+        accessor = rel.get_accessor_name()
+        # getattr with default avoids RelatedObjectDoesNotExist being raised
+        child = getattr(joke_base, accessor, None)
+        if child is not None:
+            concrete_children.append(child)
+
+    if not concrete_children:
+        raise RuntimeError(f"JokeBase {joke_base.pk} has no concrete child instance")
+    if len(concrete_children) > 1:
+        raise RuntimeError(
+            f"JokeBase {joke_base.pk} has multiple concrete children: "
+            f"{[c.__class__.__name__ for c in concrete_children]}"
+        )
+
+    return concrete_children[0]
+
+def index(
+    request: HttpRequest,
+    joke_id = None,
+    joke_slug = None,
+):
+
+    abstract_joke = None
     #TODO: make this dynamic based on form_type or something like that
     selected_types = ["CornyJoke", "LongJoke"]
     q_filter = Q()
@@ -27,16 +77,35 @@ def index(request, joke_id=None, joke_slug=None):
 
     # grab the joke by id or slug
     if joke_id:
-        joke = get_object_or_404(JokeBase, pk=joke_id)
+        abstract_joke = get_object_or_404(JokeBase, pk=joke_id)
     elif joke_slug:
-        joke = get_object_or_404(JokeBase, slug=joke_slug)
+        abstract_joke = get_object_or_404(JokeBase, slug=joke_slug)
+    
+    # convert to concrete subclass and fail fast if data is inconsistent
+    try:
+        concrete_joke = _as_concrete_joke(abstract_joke)
+    except RuntimeError:
+        raise Http404("Joke not found")
 
-    if not joke or joke.is_deleted or not joke.is_approved:
-        # grab a random nondeleted, approved joke
-        joke = JokeBase.objects.filter(
+    if (not concrete_joke
+        or concrete_joke.is_deleted 
+        or not concrete_joke.is_approved
+    ):
+        # grab a random nondeleted, approved joke (JokeBase)
+        abstract_joke = JokeBase.objects.filter(
             is_approved=True,
             is_deleted=False,
-        ).filter(q_filter).order_by("?").first()
+        ).filter(q_filter) \
+         .order_by("?") \
+         .first()
+
+        if abstract_joke is None:
+            raise Http404("No jokes available")
+
+        try:
+            concrete_joke = _as_concrete_joke(abstract_joke)
+        except RuntimeError:
+            raise Http404("Joke not found")
 
     # grab the number of approved jokes
     total_approved_jokes = JokeBase.objects.filter(
@@ -51,8 +120,8 @@ def index(request, joke_id=None, joke_slug=None):
     ).count()
 
     context = {
-        "joke": joke,
-        "joke_type": joke.__class__.__name__,
+        "joke": concrete_joke,
+        "joke_type": concrete_joke.__class__.__name__,
         "total_approved_jokes": total_approved_jokes,
         "jokes_in_queue": jokes_in_queue,
     }

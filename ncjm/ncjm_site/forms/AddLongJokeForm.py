@@ -3,12 +3,11 @@ import re
 from django import forms
 from django.conf import settings
 
-from . import AddJokeFormBase
+from .AddJokeFormBase import AddJokeFormBase
 from ncjm.models import LongJoke, Tag
 
 
 class AddLongJokeForm(AddJokeFormBase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         supported_platforms = ", ".join(settings.NCJM_MEDIA_PROVIDERS)

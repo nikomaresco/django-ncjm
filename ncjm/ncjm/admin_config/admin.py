@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from ncjm.models import CornyJoke, Tag, JokeTag
 from .JokeTagInlineForm import JokeTagInlineForm
 from .filters import OrphanedJokesFilter, OrphanedTagsFilter
-from .inlines import JokeBaseInline
+from .inlines import CornyJokeInline, LongJokeInline
 from .actions import joke__approve_jokes, joke__unapprove_jokes, joke__hard_delete_jokes
 
 ### Admin classes
@@ -71,7 +71,7 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ("tag_text",)
     ordering = ("tag_text",)
     list_filter = (OrphanedTagsFilter,)
-    inlines = [JokeBaseInline,]
+    inlines = [CornyJokeInline,  LongJokeInline,]
 
 class JokeTagAdmin(admin.ModelAdmin):
     list_display = ("joke", "tag", "created_at",)

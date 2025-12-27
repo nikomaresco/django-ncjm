@@ -1,6 +1,6 @@
 from django import forms
 
-class JokeFilterForm(forms.Form):
+class JokeTypeSwitcherForm(forms.Form):
 #TODO: make this dynamic based on form_type or something like that
     joke_types = forms.MultipleChoiceField(
         choices=[

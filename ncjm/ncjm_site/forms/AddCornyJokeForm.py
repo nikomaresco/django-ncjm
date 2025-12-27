@@ -2,12 +2,11 @@ import re
 
 from django import forms
 
-from . import AddJokeFormBase
+from .AddJokeFormBase import AddJokeFormBase
 from ncjm.models import CornyJoke, Tag
 
-
 class AddCornyJokeForm(AddJokeFormBase):
-    class Meta:
+    class Meta(AddJokeFormBase.Meta):
         model = CornyJoke
         fields = AddJokeFormBase.Meta.fields + ["setup", "punchline",]
         widgets = {
