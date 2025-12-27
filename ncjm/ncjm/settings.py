@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_recaptcha",
 
+    "debug_toolbar",
 
     "ncjm",
     "api",
@@ -78,6 +79,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 REST_FRAMEWORK = {
@@ -116,6 +119,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "ncjm.wsgi.application"
 
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -160,7 +166,7 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "ncjm_site", "static",)
 ]
-STATIC_ROOT = Path(BASE_DIR) / "public_collected"
+STATIC_ROOT = Path(BASE_DIR.parent) / "public_collected"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
