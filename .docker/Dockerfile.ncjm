@@ -23,7 +23,7 @@ COPY requirements.txt /home/ncjm/requirements.txt
 RUN pip install --no-cache-dir -r /home/ncjm/requirements.txt
 
 # create aliases
-COPY ./dockerfile-aliases.sh /aliases.sh
+COPY .docker/dockerfile-aliases.sh /aliases.sh
 RUN echo "source /aliases.sh" >> /home/ncjm/.bashrc
 
 COPY ./ncjm/ /home/ncjm/app
