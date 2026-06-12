@@ -4,11 +4,12 @@ services:
       context: ..
       dockerfile: ./.docker/Dockerfile.ncjm
     container_name: ncjm_app
+    restart: unless-stopped
     env_file:
       - ../.env
     volumes:
-      - ../ncjm/db.sqlite3:/home/ncjm/app/db.sqlite3
-      - ../public_collected/:/home/ncjm/app/public_collected
+      - ../ncjm/db.sqlite3:/home/ncjm/app/db.sqlite3:rw
+      - ../public_collected/:/home/ncjm/app/public_collected:rw
     working_dir: /home/ncjm/app
     command: ["gunicorn", "ncjm.wsgi:application", "--bind", "0.0.0.0:8000"]
     ports:
@@ -17,35 +18,38 @@ services:
   nginx:
     image: nginx:alpine
     container_name: ncjm_nginx
+    restart: unless-stopped
     env_file:
       - ../.env
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ../public_collected/:/home/ncjm/public_collected
-      - ../.nginx.conf:/etc/nginx/conf.d/default.conf
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/lib/letsencrypt:/var/lib/letsencrypt
-      - certbot-webroot:/var/www/certbot
+      - ../public_collected/:/home/ncjm/public_collected:ro
+      - ../.nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
+      - certbot-webroot:/var/www/certbot:ro
     depends_on:
       - web
 
   certbot:
     image: certbot/certbot
     container_name: ncjm_certbot
+    restart: unless-stopped
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/log/letsencrypt:/var/log/letsencrypt
-      - certbot-webroot:/var/www/certbot
-    entrypoint: >
-      /bin/sh -c '
-      trap exit TERM;
-      while :; do
-        certbot renew --deploy-hook "docker kill -s HUP ncjm_nginx";
-        sleep 12h & wait $${!};
-      done;
-      '
-      
+      - /etc/letsencrypt:/etc/letsencrypt:rw
+      - /var/log/letsencrypt:/var/log/letsencrypt:rw
+      - certbot-webroot:/var/www/certbot:rw
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        while true; do
+          echo "=== $(date) running certbot renew ==="
+          certbot renew
+          sleep 12h
+        done
+
 volumes:
   certbot-webroot:
