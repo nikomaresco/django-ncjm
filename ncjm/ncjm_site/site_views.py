@@ -175,7 +175,7 @@ def add_joke(request):
                 "form": form,
                 "form_type": form_type,
             }
-        
+
         return render(request, "add_joke.html", context=context)
 
     #TODO: make this dynamic based on form_type or something like that
@@ -196,16 +196,17 @@ def search(request):
         jokes_results = CornyJoke.objects.filter(
             Q(tags__in=tags) | Q(submitter_name__icontains=search_term),
             is_deleted=False,
-        ).distinct()
+        ) \
+        .distinct() \
+        .order_by("-created_at")
 
-    paginator = Paginator(jokes_results, 10)  # Show 10 jokes per page
+    paginator = Paginator(jokes_results, 10)  # show 10 jokes per page
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
     for joke in page_obj:
         joke.full_url_by_id = request.build_absolute_uri(f"/id/{joke.id}/")
         joke.full_url_by_slug = request.build_absolute_uri(f"/slug/{joke.slug}/")
-
 
     context = {
         "search_term": search_term,
