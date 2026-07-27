@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 
@@ -9,14 +10,7 @@ class AlreadyReactedException(Exception):
     pass
 
 class Joke(models.Model):
-    default_reactions = {
-        "😠": 0,
-        "🥱": 0,
-        "🫤": 0,
-        "🙄": 0,
-        "🤣": 0,
-        "🤩": 0,
-    }
+    default_reactions = settings.NCJM_ALLOWED_REACTIONS_MAP.copy()
 
     created_at = models.DateTimeField(
         help_text="The date and time the joke was submitted.",
@@ -108,12 +102,29 @@ class Joke(models.Model):
     def clean(self):
         """
         Ensures that the setup and punchline are not the same, and that a
-        default reactions dictionary is present.
+        standardized reactions dictionary is present.
         """
         if self.setup == self.punchline:
             raise ValidationError("Setup and punchline cannot be the same.")
-        if not self.reactions or self.reactions == {}:
+
+        if self.reactions is None or self.reactions == {}:
             self.reactions = self.default_reactions.copy()
+            return
+
+        if not isinstance(self.reactions, dict):
+            raise ValidationError("Reactions must be a JSON object.")
+
+        normalized_reactions = self.default_reactions.copy()
+
+        for emoji, count in self.reactions.items():
+            if emoji not in self.default_reactions:
+                raise ValidationError(f"Unsupported reaction emoji: {emoji}")
+            if not isinstance(count, int) or count < 0:
+                raise ValidationError(f"Reaction count for {emoji} must be a non-negative integer.")
+
+            normalized_reactions[emoji] = count
+
+        self.reactions = normalized_reactions
 
     def save(self, *args, **kwargs):
         """
@@ -121,7 +132,11 @@ class Joke(models.Model):
 
         Updates the slug if the setup has changed or if the slug is not set.
         """
-        if not self.slug or self.setup != Joke.objects.get(pk=self.pk).setup:
+        previous_setup = None
+        if self.pk is not None:
+            previous_setup = Joke.objects.filter(pk=self.pk).values_list("setup", flat=True).first()
+
+        if not self.slug or (previous_setup is not None and self.setup != previous_setup):
             new_slug = slugify(self.setup)
 
             # ensure the slug is unique by appending a counter if necessary
@@ -131,6 +146,11 @@ class Joke(models.Model):
                 slug_counter += 1
 
             self.slug = new_slug
+
+        if self.reactions is None or self.reactions == {}:
+            self.reactions = self.default_reactions.copy()
+
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -186,9 +206,6 @@ class Joke(models.Model):
             user_agent=user_agent,
         )
 
-        if reaction_emoji in self.reactions:
-            self.reactions[reaction_emoji] += 1
-        else:
-            self.reactions[reaction_emoji] = 1
+        self.reactions[reaction_emoji] += 1
 
         self.save()

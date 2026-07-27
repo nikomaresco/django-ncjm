@@ -1,10 +1,21 @@
+{% load reaction_extras %}
+
 <section id="reactions">
     <h3 class="midgray">rate this joke:</h3>
     <ol>
         {% for reaction, count in joke.reactions.items %}
         <li>
-            <button class="reaction-button" data-emoji="{{ reaction }}">
-                <span class="reaction-symbol">{{ reaction }}</span>
+            <button
+                class="reaction-button"
+                data-emoji="{{ reaction }}"
+                title="{{ reaction_labels|get_item:reaction|default:'reaction' }}"
+                aria-label="{{ reaction_labels|get_item:reaction|default:'reaction' }}"
+            >
+                <span
+                    class="reaction-symbol"
+                    role="img"
+                    aria-label="{{ reaction_labels|get_item:reaction|default:'reaction' }}"
+                >{{ reaction }}</span>
                 <span class="reaction-count">{{ count }}</span>
             </button>
         </li>
