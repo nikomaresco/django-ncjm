@@ -1,18 +1,22 @@
 from django.urls import path
 
-from api.endpoints.joke import create_read_joke, update_delete_joke
-from api.endpoints.tag import create_tag, get_or_delete_tag
-from api.endpoints.submitter import get_jokes_by_submitter
+from api.endpoints.joke import JokeListCreateView, JokeRetrieveUpdateDestroyView, RandomJokeView
+from api.endpoints.reaction import AllowedReactionsView, JokeReactionCreateView
+from api.endpoints.submitter import SubmitterJokesListView, SubmitterListView
+from api.endpoints.tag import TagJokesListView, TagListCreateView, TagRetrieveUpdateDestroyView
 
 urlpatterns = [
-    # joke endpoint
-    path("joke/", create_read_joke),
-    path("joke/<int:id>/", update_delete_joke),
+    path("v1/reactions/options/", AllowedReactionsView.as_view(), name="reactions-options"),
 
-    # tag endpoint
-    path("tag/", create_tag),
-    path("tag/<str:tag_text>/", get_or_delete_tag),
+    path("v1/jokes/", JokeListCreateView.as_view(), name="jokes-list-create"),
+    path("v1/jokes/random/", RandomJokeView.as_view(), name="jokes-random"),
+    path("v1/jokes/<int:pk>/", JokeRetrieveUpdateDestroyView.as_view(), name="jokes-detail"),
+    path("v1/jokes/<int:pk>/reactions/", JokeReactionCreateView.as_view(), name="jokes-reactions-create"),
 
-    # submitter endpoint
-    path("submitter/<str:submitter_name>", get_jokes_by_submitter),
+    path("v1/tags/", TagListCreateView.as_view(), name="tags-list-create"),
+    path("v1/tags/<int:pk>/", TagRetrieveUpdateDestroyView.as_view(), name="tags-detail"),
+    path("v1/tags/<str:tag_text>/jokes/", TagJokesListView.as_view(), name="tags-jokes"),
+
+    path("v1/submitters/", SubmitterListView.as_view(), name="submitters-list"),
+    path("v1/submitters/<str:submitter_name>/jokes/", SubmitterJokesListView.as_view(), name="submitter-jokes"),
 ]

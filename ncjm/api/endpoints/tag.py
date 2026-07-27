@@ -1,51 +1,46 @@
-from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
 
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from ncjm.models import Tag, Joke
-from ..serializers import TagSerializer, JokeSerializer
+from ncjm.models import Joke, Tag
+from ..serializers import JokeReadSerializer, TagSerializer, TagWriteSerializer
 
 
-def _get_jokes_with_tag(request, tag_text):
-    tag = get_object_or_404(Tag, tag_text=tag_text)
-    jokes = Joke.objects.filter(tags=tag)
+def _visible_jokes_for_request(request):
+    queryset = Joke.objects.filter(is_deleted=False).prefetch_related("tags")
 
-    page = request.query_params.get("page", 1)
-    per_page = request.query_params.get("per_page", 10)
+    if request.user.is_authenticated and request.user.is_staff:
+        return queryset
 
-    paginator = Paginator(jokes, per_page=per_page)
-    jokes_paginated = paginator.get_page(page)
-
-    serializer = JokeSerializer(jokes_paginated, many=True)
-    return Response(serializer.data)
-
-def _delete_tag(request, tag_text):
-    tag = get_object_or_404(Tag, tag_text=tag_text)
-    tag.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
-
-def _create_tag(request):
-    serializer = TagSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return queryset.filter(is_approved=True)
 
 
-@api_view(["GET", "DELETE"])
-@permission_classes([IsAuthenticated])
-def get_or_delete_tag(request, tag_text):
-    if request.method == "GET":
-        return _get_jokes_with_tag(request, tag_text)
-    if request.method == "DELETE":
-        return _delete_tag(request, tag_text)
+class TagListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Tag.objects.all().order_by("tag_text")
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def create_tag(request):
-    return _create_tag(request)
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return TagWriteSerializer
+        return TagSerializer
+
+
+class TagRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Tag.objects.all().order_by("tag_text")
+
+    def get_serializer_class(self):
+        if self.request.method in ["PATCH", "PUT"]:
+            return TagWriteSerializer
+        return TagSerializer
+
+
+class TagJokesListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = JokeReadSerializer
+
+    def get_queryset(self):
+        tag_text = self.kwargs["tag_text"]
+        tag = get_object_or_404(Tag, tag_text__iexact=tag_text)
+        return _visible_jokes_for_request(self.request).filter(tags=tag).order_by("-created_at")

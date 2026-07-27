@@ -1,28 +1,38 @@
-from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
+from django.db.models import Count
 
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from ncjm.models import Joke
-from ..serializers import JokeSerializer
+from ..serializers import JokeReadSerializer, SubmitterSerializer
 
-def _get_jokes_by_submitter(request, submitter_name):
-    jokes = Joke.objects.filter(submitter_name=submitter_name)
 
-    page = request.query_params.get("page", 1)
-    per_page = request.query_params.get("per_page", 10)
+def _visible_jokes_for_request(request):
+    queryset = Joke.objects.filter(is_deleted=False).prefetch_related("tags")
 
-    paginator = Paginator(jokes, per_page=per_page)
-    jokes_paginated = paginator.get_page(page)
+    if request.user.is_authenticated and request.user.is_staff:
+        return queryset
 
-    serializer = JokeSerializer(jokes_paginated, many=True)
-    return Response(serializer.data)
+    return queryset.filter(is_approved=True)
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_jokes_by_submitter(request, submitter_name):
-    return _get_jokes_by_submitter(request, submitter_name)
+
+class SubmitterListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = SubmitterSerializer
+
+    def get_queryset(self):
+        return (
+            _visible_jokes_for_request(self.request)
+            .values("submitter_name")
+            .annotate(joke_count=Count("id"))
+            .order_by("submitter_name")
+        )
+
+
+class SubmitterJokesListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = JokeReadSerializer
+
+    def get_queryset(self):
+        submitter_name = self.kwargs["submitter_name"]
+        return _visible_jokes_for_request(self.request).filter(submitter_name=submitter_name).order_by("-created_at")
