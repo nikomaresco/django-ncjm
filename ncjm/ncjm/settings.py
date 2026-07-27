@@ -10,9 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
+import json
+import logging
 from pathlib import Path
 
 import environ
+from ncjm.reaction_config import DEFAULT_ALLOWED_REACTIONS
 
 # build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +47,53 @@ OAUTH2_PROVIDER = {
 
 RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
 RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
+
+
+def _validate_allowed_reactions(value):
+    if not isinstance(value, list) or not value:
+        raise ValueError("NCJM allowed reactions must be a non-empty list.")
+
+    seen_emojis = set()
+    normalized = []
+
+    for entry in value:
+        if not isinstance(entry, dict):
+            raise ValueError("Each reaction entry must be an object with emoji and label.")
+
+        emoji = str(entry.get("emoji", "")).strip()
+        label = str(entry.get("label", "")).strip()
+
+        if not emoji:
+            raise ValueError("Each reaction entry must include a non-empty emoji.")
+        if not label:
+            raise ValueError("Each reaction entry must include a non-empty label.")
+        if emoji in seen_emojis:
+            raise ValueError("Reaction emojis must be unique.")
+
+        seen_emojis.add(emoji)
+        normalized.append({"emoji": emoji, "label": label})
+
+    return normalized
+
+
+allowed_reactions_raw = env("NCJM_ALLOWED_REACTIONS", default="")
+if allowed_reactions_raw:
+    NCJM_ALLOWED_REACTIONS = _validate_allowed_reactions(json.loads(allowed_reactions_raw))
+else:
+    NCJM_ALLOWED_REACTIONS = _validate_allowed_reactions(DEFAULT_ALLOWED_REACTIONS)
+
+NCJM_ALLOWED_REACTIONS_MAP = {
+    item["emoji"]: 0 for item in NCJM_ALLOWED_REACTIONS
+}
+
+reaction_labels_for_log = ", ".join(
+    [f"{item['emoji']}={item['label']}" for item in NCJM_ALLOWED_REACTIONS]
+)
+logging.getLogger("ncjm.reactions").warning(
+    "Loaded %s allowed reactions: %s",
+    len(NCJM_ALLOWED_REACTIONS),
+    reaction_labels_for_log,
+)
 
 # Application definition
 
@@ -91,6 +141,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "120/hour",
+        "user": "1000/hour",
+    },
+    "EXCEPTION_HANDLER": "api.exceptions.api_exception_handler",
 }
 
 ROOT_URLCONF = "ncjm.core_urls"
