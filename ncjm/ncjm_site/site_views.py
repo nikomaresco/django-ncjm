@@ -1,4 +1,5 @@
 import json
+from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect, HttpRequest
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
@@ -41,6 +42,9 @@ def index(request, joke_id=None, joke_slug=None):
         "joke": joke,
         "total_approved_jokes": total_approved_jokes,
         "jokes_in_queue": jokes_in_queue,
+        "reaction_labels": {
+            item["emoji"]: item["label"] for item in settings.NCJM_ALLOWED_REACTIONS
+        },
     }
 
     return render(
