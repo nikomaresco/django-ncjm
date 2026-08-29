@@ -47,6 +47,21 @@ python ncjm/manage.py migrate
 python ncjm/manage.py runserver
 ```
 
+## Google Analytics 4
+
+Analytics is disabled unless it is explicitly enabled. Configure the production
+environment with the Measurement ID from the site's GA4 web data stream:
+
+```env
+GA_ENABLED=True
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+Keep `GA_ENABLED=False` in local development and automated test environments.
+When enabled, the public site records page views and a limited set of events for
+random jokes, searches, submissions, reactions, and requests for another joke.
+User-authored joke and search text is not included in event parameters.
+
 ## API Overview
 
 Base URL (production): https://nikoscornyjokemachine.com/api/v1/

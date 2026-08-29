@@ -11,6 +11,10 @@ from ncjm.models import Joke, Tag
 from ncjm.models.Joke import AlreadyReactedException
 from .forms.AddAJokeForm import AddAJokeForm
 
+
+def privacy(request):
+    return render(request, "privacy.html")
+
 def index(request, joke_id=None, joke_slug=None):
     joke = None
 

@@ -5,6 +5,7 @@ from . import site_views
 
 urlpatterns = [
     path("", site_views.index, name="index"),
+    path("privacy/", site_views.privacy, name="privacy"),
 
     path("search/", site_views.search, name="search"),
     path("add-a-joke/", site_views.add_joke, name="add_joke"),

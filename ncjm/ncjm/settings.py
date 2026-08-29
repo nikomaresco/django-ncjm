@@ -12,9 +12,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 import json
 import logging
+import re
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 from ncjm.reaction_config import DEFAULT_ALLOWED_REACTIONS
 
 # build paths inside the project like this: BASE_DIR / "subdir".
@@ -33,6 +35,14 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 NCJM_API_ENABLED = env("NCJM_API_ENABLED", default=False)
 
 DEBUG = env("DJANGO_DEBUG", default=False)
+
+GA_ENABLED = env.bool("GA_ENABLED", default=False)
+GA_MEASUREMENT_ID = env("GA_MEASUREMENT_ID", default="").strip()
+
+if GA_ENABLED and not re.fullmatch(r"G-[A-Z0-9]+", GA_MEASUREMENT_ID):
+    raise ImproperlyConfigured(
+        "GA_MEASUREMENT_ID must be a valid GA4 measurement ID when GA_ENABLED is true."
+    )
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 CORS_ALLOWED_ORIGINS = env.list("DJANGO_CORS_ORIGIN_WHITELIST", default=[])
@@ -169,6 +179,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "ncjm_site.context_processors.analytics",
             ],
         },
     },

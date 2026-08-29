@@ -81,3 +81,15 @@
         </article>
     </div>
 {% endblock %}
+
+{% block scripts %}
+    {% if analytics.enabled and search_term %}
+    <script>
+        if (window.ncjmAnalytics) {
+            window.ncjmAnalytics.track("search", {
+                "result_count": {{ page_obj.paginator.count|default:0 }}
+            });
+        }
+    </script>
+    {% endif %}
+{% endblock %}
