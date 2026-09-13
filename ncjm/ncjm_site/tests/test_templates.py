@@ -51,7 +51,7 @@ class AnalyticsTemplateTest(TestCase):
         response = self.client.get("/")
 
         self.assertContains(response, "googletagmanager.com/gtag/js?id=G-TEST123")
-        self.assertContains(response, 'gtag("config", "G-TEST123"')
+        self.assertContains(response, 'gtag("config", "G\\u002DTEST123"')
         self.assertContains(response, "random_joke_view")
 
 
