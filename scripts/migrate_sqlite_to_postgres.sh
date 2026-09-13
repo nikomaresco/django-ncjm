@@ -165,9 +165,9 @@ if [ ! -s "$ARTIFACT_DIR/ncjm-data.json" ]; then
 fi
 
 echo "Importing into PostgreSQL..."
-dc --profile ops run --rm \
-    -v "$ARTIFACT_DIR:/migration/out:ro" \
-    migrate python manage.py loaddata /migration/out/ncjm-data.json
+dc --profile ops run --rm -T \
+    migrate python manage.py loaddata --format=json - \
+    < "$ARTIFACT_DIR/ncjm-data.json"
 
 echo "Resetting PostgreSQL sequences after explicit primary-key import..."
 dc --profile ops run --rm migrate \
