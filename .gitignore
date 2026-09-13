@@ -41,7 +41,11 @@ celerybeat.pid
 
 # data generated during development
 .development-data/
+.deploy/
+.migration-artifacts/
+.docker/production.env
 
 .htpasswd
 
 db.sqlite3
+production.sqlite*

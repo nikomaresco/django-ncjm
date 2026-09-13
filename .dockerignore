@@ -1,0 +1,13 @@
+.git
+.gitignore
+.venv
+.env
+.env.*
+!.env.example
+__pycache__
+*.py[cod]
+*.sqlite3
+logs
+public_collected
+.development-data
+docs

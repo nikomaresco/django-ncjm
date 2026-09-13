@@ -214,13 +214,18 @@ A tag has a unique lowercase label and creation timestamp. Tag text must contain
 
 ## 7. System architecture
 
+### 7.1 Current application architecture
+
 The application is a single Django deployment:
 
 ```text
 Browser / API client
         |
         v
-Nginx (TLS termination, HTTP redirect, static files, bot blocking)
+Host Caddy (TLS termination and canonical redirect)
+        |
+        v
+Internal Nginx (static files and reverse proxy)
         |
         v
 Gunicorn
@@ -235,7 +240,74 @@ Django
 Database configured by DATABASE_URL
 ```
 
-Static CSS and JavaScript are collected into `public_collected` and served directly by Nginx. Django is packaged in a Python 3.12 container and run by Gunicorn. Production orchestration also includes Nginx and a recurring Certbot renewal container.
+Static CSS and JavaScript are collected at image-build time and baked into the internal Nginx image. Django is packaged in a non-root Python 3.12 container and run by Gunicorn. The production Compose definition publishes internal Nginx only on a configurable loopback port, keeps PostgreSQL private, and leaves public TLS and certificate renewal to host infrastructure.
+
+### 7.2 Target hosted architecture
+
+NCJM may run on a host that also runs unrelated services, but it must remain entirely unaware of them. The NCJM repository, configuration, network, data model, and deployment procedure contain no other application names, domains, ports, credentials, service discovery, or operational assumptions. Co-location is solely a host-infrastructure concern.
+
+One host-level Caddy instance outside the NCJM project exclusively owns public ports 80 and 443, terminates TLS, applies the canonical-domain redirect, and routes NCJM requests by hostname:
+
+```text
+Internet
+   |
+   v
+Caddy :80/:443
+   |-- nikoscornyjokemachine.com ----> NCJM private upstream
+   |-- www.nikoscornyjokemachine.com -> canonical redirect
+   `-- other host routes ------------> outside NCJM's boundary
+
+NCJM Compose project
+   |-- Django/Gunicorn
+   `-- NCJM-private data services
+```
+
+NCJM must not permanently publish ports 80 or 443, and its database may not be exposed publicly. It keeps its own Compose project name, environment file, private network, database/storage volumes, deployment procedure, and restart policy. Deploying or restarting NCJM must not require knowledge of or changes to any unrelated project.
+
+Caddy must preserve the original `Host` and forwarded HTTPS information. Django must trust only the known proxy boundary, use `SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")`, and configure `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` for the actual HTTPS hostnames. This also resolves incorrect `http://` absolute URLs generated behind the current proxy.
+
+The canonical NCJM hostname is the apex `nikoscornyjokemachine.com`; `www.nikoscornyjokemachine.com` permanently redirects to the apex while preserving the request URI. This behavior is configured explicitly in Caddy rather than relying on DNS or application-side accidents.
+
+### 7.3 Caddy placement options
+
+The existing droplet must be inspected before selecting either topology. Do not run two proxies that compete for ports 80 and 443.
+
+**Host systemd Caddy:** Caddy runs directly on the host. NCJM publishes Gunicorn or an application-local proxy only on a distinct loopback address such as `127.0.0.1:8001`. The port is a placeholder to resolve against the live listener inventory and is private NCJM deployment configuration.
+
+**Containerized Caddy:** Caddy joins a host-managed external Docker network, conventionally `web`. Only Caddy and NCJM's web-facing service join that network from the NCJM project. Caddy proxies to an NCJM-specific network alias, so the application port need not be published on the host. The NCJM database remains attached only to the NCJM-private network. The external proxy network is an infrastructure interface, not an application-level dependency on its other participants.
+
+The chosen pattern should match the proxy already present on the droplet. If Caddy is already installed as a host service, prefer loopback-bound upstreams. If the established infrastructure proxy is containerized, prefer the shared external-network pattern.
+
+### 7.4 Health-check contract
+
+NCJM will expose an internal `GET /health/` endpoint for container health checks and deployment verification. It returns a small JSON response and no application or environment details:
+
+```json
+{"status": "ok"}
+```
+
+The endpoint returns HTTP 200 only when Django can service the request. The initial liveness check does not query external services. A separate readiness check may later verify database connectivity if the deployment system can distinguish readiness from liveness. Health requests are excluded from Google Analytics and routine access-log noise where practical.
+
+### 7.5 Pre-change server audit and cutover
+
+Before changing the production Compose file, Nginx, Certbot, DNS, firewall, or Caddy configuration, inspect and record:
+
+- Running containers, Compose projects, images, and restart policies.
+- Every process listening on public and loopback ports.
+- Existing host-level Nginx, Caddy, Apache, and Certbot services and timers.
+- Firewall and DigitalOcean cloud-firewall rules.
+- Available RAM, swap, disk space, and Docker volume usage.
+- DNS records for the NCJM apex and `www` hostnames.
+- The exact NCJM checkout, environment-file location, database engine/storage, static-file path, and deployment commands.
+- Current TLS certificate ownership and renewal mechanism.
+
+Use a staged cutover:
+
+1. Establish and test Caddy without changing the live hostname route.
+2. Reconfigure NCJM to a private upstream and verify `/health/` locally.
+3. Add the NCJM Caddy route and canonical redirect, then validate headers, static assets, CSRF, and absolute HTTPS URLs.
+4. Remove NCJM's direct 80/443 publication and retire its application-local TLS renewal only after Caddy is serving valid certificates.
+Keep a tested rollback path to the previous NCJM proxy configuration throughout cutover. Avoid unnecessary interruption to existing NCJM traffic.
 
 ## 8. Configuration
 
@@ -290,7 +362,10 @@ Future regression coverage should prioritize the public visibility boundary, sub
 
 - Production should run with `DJANGO_DEBUG=False`.
 - Database migrations and static collection must run as part of deployment.
-- TLS certificates are renewed by Certbot and consumed by Nginx.
+- In the current deployment, TLS certificates are renewed by Certbot and consumed by Nginx. In the target shared-droplet deployment, the single host-level Caddy instance owns TLS and certificate renewal for both applications.
+- Only Caddy publishes public HTTP/HTTPS ports in the target architecture; application upstreams bind to loopback or a private shared proxy network.
+- NCJM retains its own Compose project, environment file, private network, database, volumes, deployment procedure, and restart policy, with no references to unrelated applications.
+- Database ports and application upstream ports are not exposed to the public network.
 - The API should be deliberately enabled or disabled through its feature flag.
 - Moderators should periodically review the approval queue and orphan filters.
 - Database and certificate data require backups outside the application container.
@@ -1081,13 +1156,13 @@ The form field says tags are comma-separated, its placeholder shows a space-sepa
 
 **Desired behavior:** Choose and document one parsing format, then share normalization logic between the form and API serializer.
 
-### A.10 Deployment storage configuration is ambiguous — P3
+### A.10 Production data cutover is not yet complete — P2
 
-**Status:** Confirmed in repository configuration.
+**Status:** Tooling implemented and rehearsed; production migration intentionally not performed.
 
-Settings require `DATABASE_URL`, and the example specifies PostgreSQL, while the production Compose file mounts `db.sqlite3`. It is unclear whether the mount is obsolete or production is intended to use SQLite through an environment override.
+The production design now declares private PostgreSQL storage and provides guarded SQLite migration tooling. The live database engine, SQLite schema lineage, backup path, and every writer still require confirmation during the host audit. The repository developer database belongs to the experimental long-joke branch and is not compatible with the active one-liner schema without an explicit preservation migration.
 
-**Desired behavior:** Declare one production database design, remove obsolete mounts, and document backup and restore procedures.
+**Desired behavior:** Rehearse from a fresh production snapshot, preserve any rich-joke records through an approved schema decision, complete the write-frozen cutover, and retain the frozen SQLite source and PostgreSQL checkpoints through the recovery window.
 
 ### A.11 Local development environment is not reproducible as checked out — P3
 
@@ -1108,6 +1183,22 @@ The ignored `.venv` directory points to a Python installation that is no longer 
 
 **Desired behavior:** Correct the markup and links, normalize class naming, and add responsive layout coverage.
 
+### A.13 Current proxy stack cannot coexist with a second application — P2
+
+**Status:** Addressed in checked-in configuration; live-host cutover still requires inspection.
+
+The production Compose definition now publishes internal Nginx only to a configurable loopback port and contains no Certbot service. The legacy live deployment may still publish 80/443 until the audited cutover occurs.
+
+**Desired behavior:** After auditing the live server, make the established host-level Caddy instance the exclusive owner of ports 80/443. Expose NCJM only through a loopback-bound port or shared private proxy network, preserve application-private networking, and retire redundant Nginx/Certbot responsibilities through a staged cutover.
+
+### A.14 No internal health endpoint — P3
+
+**Status:** Implemented and container-tested.
+
+NCJM exposes a minimal `/health/` JSON liveness endpoint. Compose also checks PostgreSQL independently and internal Nginx exposes `/nginx-health`.
+
+**Desired behavior:** Add the minimal `/health/` JSON contract from Section 7.4, exclude it from analytics, and use it in container and deployment checks.
+
 ## Appendix B: Near-term remediation order
 
 1. Enforce a single public-visibility rule everywhere.
@@ -1116,4 +1207,5 @@ The ignored `.venv` directory points to a Python installation that is no longer 
 4. Correct HTTPS URL generation.
 5. Add homepage empty-state behavior.
 6. Restore a reproducible test environment and add regression tests for items 1–5.
-7. Resolve deployment ambiguity, privacy retention, slug policy, and UI polish items.
+7. Audit the shared droplet and migrate NCJM behind the single host-level Caddy proxy without competing for ports 80/443.
+8. Resolve remaining deployment ambiguity, privacy retention, slug policy, and UI polish items.

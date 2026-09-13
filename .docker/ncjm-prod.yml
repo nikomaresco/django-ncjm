@@ -1,55 +1,138 @@
+name: ncjm
+
+x-app-image: &app-image
+  image: ${NCJM_APP_IMAGE:-ncjm-app:local}
+  build:
+    context: ..
+    dockerfile: .docker/Dockerfile.ncjm
+    target: app
+
+x-app-environment: &app-environment
+  env_file:
+    - ${NCJM_ENV_FILE:-./production.env}
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
-  web:
-    build:
-      context: ..
-      dockerfile: ./.docker/Dockerfile.ncjm
-    container_name: ncjm_app
+  db:
+    image: postgres:16-alpine
     restart: unless-stopped
     env_file:
-      - ../.env
+      - ${NCJM_ENV_FILE:-./production.env}
     volumes:
-      - ../ncjm/db.sqlite3:/home/ncjm/app/db.sqlite3:rw
-      - ../public_collected/:/home/ncjm/app/public_collected:rw
-    working_dir: /home/ncjm/app
-    command: ["gunicorn", "ncjm.wsgi:application", "--bind", "0.0.0.0:8000"]
-    ports:
-      - "8000:8000"
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    mem_limit: ${NCJM_DB_MEMORY_LIMIT:-512m}
+    cpus: ${NCJM_DB_CPU_LIMIT:-0.75}
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+  web:
+    <<: [*app-image, *app-environment]
+    restart: unless-stopped
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    networks:
+      - frontend
+      - backend
+      - egress
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; r=urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/health/', headers={'Host':'nikoscornyjokemachine.com','X-Forwarded-Proto':'https'}), timeout=3); raise SystemExit(0 if r.status == 200 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 40s
+    mem_limit: ${NCJM_WEB_MEMORY_LIMIT:-384m}
+    cpus: ${NCJM_WEB_CPU_LIMIT:-0.75}
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
 
   nginx:
-    image: nginx:alpine
-    container_name: ncjm_nginx
+    image: ${NCJM_NGINX_IMAGE:-ncjm-nginx:local}
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile.ncjm
+      target: nginx
     restart: unless-stopped
-    env_file:
-      - ../.env
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ../public_collected/:/home/ncjm/public_collected:ro
-      - ../.nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
-      - certbot-webroot:/var/www/certbot:ro
     depends_on:
-      - web
+      web:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${NCJM_HTTP_PORT:-8001}:8080"
+    networks:
+      - frontend
+      - edge
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:size=16m
+      - /var/run:size=1m
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/nginx-health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    mem_limit: ${NCJM_NGINX_MEMORY_LIMIT:-64m}
+    cpus: ${NCJM_NGINX_CPU_LIMIT:-0.25}
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
 
-  certbot:
-    image: certbot/certbot
-    container_name: ncjm_certbot
-    restart: unless-stopped
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:rw
-      - /var/log/letsencrypt:/var/log/letsencrypt:rw
-      - certbot-webroot:/var/www/certbot:rw
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        while true; do
-          echo "=== $(date) running certbot renew ==="
-          certbot renew
-          sleep 12h
-        done
+  migrate:
+    <<: [*app-image, *app-environment]
+    profiles: ["ops"]
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    networks:
+      - backend
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    restart: "no"
+    mem_limit: 256m
+    cpus: 0.50
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+networks:
+  frontend:
+    internal: true
+  backend:
+    internal: true
+  egress:
+  edge:
 
 volumes:
-  certbot-webroot:
+  postgres_data:

@@ -3,6 +3,7 @@ services:
     build:
       context: ..
       dockerfile: ./.docker/Dockerfile.ncjm
+      target: app
     container_name: ncjm_app
     env_file:
       - ../.env

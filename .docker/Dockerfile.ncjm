@@ -1,29 +1,63 @@
-FROM python:3.12-slim-bookworm AS app
+# syntax=docker/dockerfile:1.7
 
-ENV PYTHONUNBUFFERED 1
+FROM python:3.12-slim-bookworm AS wheels
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /build
+COPY requirements.txt ./
+RUN python -m pip wheel --wheel-dir /wheels -r requirements.txt
+
+
+FROM python:3.12-slim-bookworm AS app
 
 ARG UID=1000
 ARG GID=1000
 
-# create ncjm:ncjm
-RUN groupadd -g "${GID}" ncjm \
-    && useradd --create-home --no-log-init -u "${UID}" -g "${GID}" ncjm
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PATH="/home/ncjm/.local/bin:${PATH}" \
+    PYTHONPATH=/home/ncjm/app
 
-# switch to python user
-USER ncjm
+RUN groupadd --gid "${GID}" ncjm \
+    && useradd --uid "${UID}" --gid "${GID}" --create-home --no-log-init ncjm
 
-# configure environment vars for python user
-ENV PATH="${PATH}:/home/ncjm/.local/bin" \
-    PYTHONPATH="." \
-    USER="ncjm"
+COPY --from=wheels /wheels /wheels
+RUN python -m pip install --no-index --find-links=/wheels /wheels/* \
+    && rm -rf /wheels
 
 WORKDIR /home/ncjm/app
+COPY --chown=ncjm:ncjm ./ncjm/ ./
 
-COPY requirements.txt /home/ncjm/requirements.txt
-RUN pip install --no-cache-dir -r /home/ncjm/requirements.txt
-
-COPY ./ncjm/ /home/ncjm/app
-
+USER ncjm
 EXPOSE 8000
 
-CMD ["gunicorn", "ncjm.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "ncjm.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "2", "--timeout", "30", "--graceful-timeout", "30", "--access-logfile", "-", "--error-logfile", "-"]
+
+
+FROM app AS static-builder
+
+ENV DATABASE_URL=sqlite:////tmp/ncjm-build.sqlite3 \
+    DJANGO_ALLOWED_HOSTS=localhost \
+    DJANGO_DEBUG=False \
+    DJANGO_SECRET_KEY=build-only-not-used-at-runtime \
+    DJANGO_SETTINGS_MODULE=ncjm.settings \
+    GA_ENABLED=False \
+    NCJM_API_ENABLED=False \
+    RECAPTCHA_PRIVATE_KEY=build-only \
+    RECAPTCHA_PUBLIC_KEY=build-only
+
+USER root
+RUN install -d -o ncjm -g ncjm /home/ncjm/app/public_collected
+USER ncjm
+RUN python manage.py collectstatic --noinput --clear
+
+
+FROM nginx:stable-alpine AS nginx
+
+COPY .docker/nginx-internal.conf /etc/nginx/conf.d/default.conf
+COPY --from=static-builder /home/ncjm/app/public_collected/ /srv/ncjm/static/
+
+EXPOSE 8080
