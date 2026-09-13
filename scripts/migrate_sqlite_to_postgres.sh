@@ -149,7 +149,7 @@ echo "Exporting portable Django data from SQLite..."
 dc --profile ops run --rm --no-deps \
     --user "$MIGRATION_RUN_AS" \
     -e DATABASE_URL=sqlite:////migration/out/source-migrated.sqlite3 \
-    -v "$ARTIFACT_DIR:/migration/out" \
+    -v "$ARTIFACT_DIR:/migration/out:ro" \
     migrate python manage.py dumpdata \
     --natural-foreign \
     --natural-primary \
@@ -157,7 +157,12 @@ dc --profile ops run --rm --no-deps \
     --exclude auth.permission \
     --exclude sessions \
     --indent 2 \
-    --output /migration/out/ncjm-data.json
+    > "$ARTIFACT_DIR/ncjm-data.json"
+
+if [ ! -s "$ARTIFACT_DIR/ncjm-data.json" ]; then
+    echo "SQLite export did not produce a fixture; refusing to import." >&2
+    exit 1
+fi
 
 echo "Importing into PostgreSQL..."
 dc --profile ops run --rm \
