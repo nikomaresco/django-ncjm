@@ -12,31 +12,48 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 import json
 import logging
+import re
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 from ncjm.reaction_config import DEFAULT_ALLOWED_REACTIONS
 
-# build paths inside the project like this: BASE_DIR / "subdir".
+# Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
-# get sensitive values from environment conifg (.env)
+
+# Get sensitive values from environment config (.env).
 env = environ.Env()
 environ.Env.read_env(BASE_DIR.parent / ".env")
 
-LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)
-
-
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
-NCJM_API_ENABLED = env("NCJM_API_ENABLED", default=False)
+NCJM_API_ENABLED = env.bool("NCJM_API_ENABLED", default=False)
 
-DEBUG = env("DJANGO_DEBUG", default=False)
+DEBUG = env.bool("DJANGO_DEBUG", default=False)
+
+GA_ENABLED = env.bool("GA_ENABLED", default=False)
+GA_MEASUREMENT_ID = env("GA_MEASUREMENT_ID", default="").strip()
+
+if GA_ENABLED and not re.fullmatch(r"G-[A-Z0-9]+", GA_MEASUREMENT_ID):
+    raise ImproperlyConfigured(
+        "GA_MEASUREMENT_ID must be a valid GA4 measurement ID when GA_ENABLED is true."
+    )
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 CORS_ALLOWED_ORIGINS = env.list("DJANGO_CORS_ORIGIN_WHITELIST", default=[])
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
+
+# The public TLS boundary is the host-level reverse proxy. Internal Nginx must
+# preserve this header rather than replacing it with its own HTTP scheme.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=not DEBUG)
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = env.int("DJANGO_HSTS_SECONDS", default=0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 
 OAUTH2_PROVIDER = {
     "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
@@ -169,6 +186,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "ncjm_site.context_processors.analytics",
             ],
         },
     },
@@ -180,9 +198,22 @@ WSGI_APPLICATION = "ncjm.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": env.db(),
-}
+database_url = env("DATABASE_URL", default="").strip()
+if database_url:
+    DATABASES = {"default": env.db_url_config(database_url)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("POSTGRES_DB"),
+            "USER": env("POSTGRES_USER"),
+            "PASSWORD": env("POSTGRES_PASSWORD"),
+            "HOST": env("POSTGRES_HOST", default="db"),
+            "PORT": env.int("POSTGRES_PORT", default=5432),
+            "CONN_MAX_AGE": env.int("POSTGRES_CONN_MAX_AGE", default=60),
+            "CONN_HEALTH_CHECKS": True,
+        }
+    }
 
 
 # Password validation

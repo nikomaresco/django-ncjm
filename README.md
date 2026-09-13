@@ -47,6 +47,33 @@ python ncjm/manage.py migrate
 python ncjm/manage.py runserver
 ```
 
+## Google Analytics 4
+
+Analytics is disabled unless it is explicitly enabled. Configure the production
+environment with the Measurement ID from the site's GA4 web data stream:
+
+```env
+GA_ENABLED=True
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+Keep `GA_ENABLED=False` in local development and automated test environments.
+When enabled, the public site records page views and a limited set of events for
+random jokes, searches, submissions, reactions, and requests for another joke.
+User-authored joke and search text is not included in event parameters.
+
+## Production deployment
+
+The deployment-ready stack uses a non-root Gunicorn image, an internal Nginx
+image with baked static files, and a private PostgreSQL service. Internal Nginx
+binds only to loopback by default so a host-managed reverse proxy can own public
+ports 80 and 443.
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the host audit, environment,
+health checks, resource limits, release and rollback commands, and the rehearsed
+SQLite-to-PostgreSQL migration process. Do not run the production database
+cutover without completing the rehearsal and write-freeze checklist.
+
 ## API Overview
 
 Base URL (production): https://nikoscornyjokemachine.com/api/v1/

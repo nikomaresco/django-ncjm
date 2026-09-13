@@ -1,0 +1,16 @@
+{% load static %}
+
+{% if analytics.enabled %}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ analytics.measurement_id|urlencode }}"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag("js", new Date());
+    gtag("config", "{{ analytics.measurement_id|escapejs }}", {
+        "allow_google_signals": false,
+        "allow_ad_personalization_signals": false
+    });
+</script>
+<script src="{% static '/js/analytics.js' %}"></script>
+{% endif %}

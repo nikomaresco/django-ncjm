@@ -8,10 +8,14 @@
         <article id="joke">
 
             <h2 id="joke-setup">
-                <a href="{% url "index" %}">{{ joke.setup }}</a>
+                <a href="{% url "index" %}"
+                   data-analytics-event="another_joke"
+                   data-analytics-source="setup">{{ joke.setup }}</a>
             </h2>
             <h2 id="joke-punchline">
-                <a href="{% url "index" %}">{{ joke.punchline }}</a>
+                <a href="{% url "index" %}"
+                   data-analytics-event="another_joke"
+                   data-analytics-source="punchline">{{ joke.punchline }}</a>
             </h2>
 
             <section id="joke-meta">
@@ -49,4 +53,13 @@
         const react_url = "{% url "add_reaction" %}";
     </script>
     <script src="{% static "/js/reaction_handler.js" %}"></script>
+    {% if analytics.enabled %}
+    <script>
+        if (window.ncjmAnalytics) {
+            window.ncjmAnalytics.track("random_joke_view", {
+                "joke_format": "classic"
+            });
+        }
+    </script>
+    {% endif %}
 {% endblock %}

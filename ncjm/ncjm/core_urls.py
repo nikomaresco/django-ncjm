@@ -2,8 +2,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
+from .health import health
 
 urlpatterns = [
+    path("health/", health, name="health"),
     path("ncjm-admin/", admin.site.urls),
     path("", include("ncjm_site.site_urls")),
 ]

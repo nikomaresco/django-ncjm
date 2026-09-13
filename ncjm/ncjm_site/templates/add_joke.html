@@ -110,3 +110,16 @@
         </div>
     </div>
 {% endblock %}
+
+{% block scripts %}
+    {% if analytics.enabled and status %}
+    <script>
+        if (window.ncjmAnalytics) {
+            window.ncjmAnalytics.track("joke_submission_result", {
+                "joke_format": "classic",
+                "result": "{{ status|escapejs }}"
+            });
+        }
+    </script>
+    {% endif %}
+{% endblock %}
