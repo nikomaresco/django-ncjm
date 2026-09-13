@@ -8,6 +8,7 @@ SQLITE_SOURCE=${SQLITE_SOURCE:-"$ROOT_DIR/ncjm/db.sqlite3"}
 MIGRATION_MODE=${MIGRATION_MODE:-rehearsal}
 TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
 ARTIFACT_DIR=${ARTIFACT_DIR:-"$ROOT_DIR/.migration-artifacts/$TIMESTAMP"}
+MIGRATION_RUN_AS=${MIGRATION_RUN_AS:-"$(id -u):$(id -g)"}
 
 # Compose uses this value both to interpolate service env_file entries and to
 # load variables for the Compose model itself.
@@ -101,6 +102,7 @@ dc build web
 
 echo "Running SQLite integrity_check against the frozen snapshot..."
 dc --profile ops run --rm --no-deps \
+    --user "$MIGRATION_RUN_AS" \
     -v "$ARTIFACT_DIR/source.sqlite3:/migration/source.sqlite3:ro" \
     migrate python -c \
     "import sqlite3; c=sqlite3.connect('file:/migration/source.sqlite3?mode=ro', uri=True); r=c.execute('PRAGMA integrity_check').fetchall(); print(r); raise SystemExit(0 if r == [('ok',)] else 1)" \
@@ -123,18 +125,21 @@ dc exec -T db sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' \
 
 echo "Applying current Django migrations to a working copy of the SQLite snapshot..."
 dc --profile ops run --rm --no-deps \
+    --user "$MIGRATION_RUN_AS" \
     -e DATABASE_URL=sqlite:////migration/out/source-migrated.sqlite3 \
     -v "$ARTIFACT_DIR:/migration/out" \
     migrate python manage.py migrate --noinput
 
 echo "Removing content types and generated permissions for models no longer installed..."
 dc --profile ops run --rm --no-deps \
+    --user "$MIGRATION_RUN_AS" \
     -e DATABASE_URL=sqlite:////migration/out/source-migrated.sqlite3 \
     -v "$ARTIFACT_DIR:/migration/out" \
     migrate python manage.py remove_stale_contenttypes --noinput
 
 echo "Fingerprinting the migrated SQLite working copy..."
 dc --profile ops run --rm --no-deps \
+    --user "$MIGRATION_RUN_AS" \
     -e DATABASE_URL=sqlite:////migration/out/source-migrated.sqlite3 \
     -v "$ARTIFACT_DIR:/migration/out:ro" \
     migrate python manage.py database_fingerprint \
@@ -142,6 +147,7 @@ dc --profile ops run --rm --no-deps \
 
 echo "Exporting portable Django data from SQLite..."
 dc --profile ops run --rm --no-deps \
+    --user "$MIGRATION_RUN_AS" \
     -e DATABASE_URL=sqlite:////migration/out/source-migrated.sqlite3 \
     -v "$ARTIFACT_DIR:/migration/out" \
     migrate python manage.py dumpdata \
